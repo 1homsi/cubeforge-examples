@@ -110,7 +110,7 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
     const dy = transform.y - et.y  // positive = player is lower than enemy
 
     // Stomp: player falling, center above enemy center, close horizontally
-    if (rb.vy > 50 && dy < 0 && dy > -58 && dx < 26) {
+    if (rb.vy > 50 && dy < 0 && dy > -58 && dx < 30) {
       world.destroyEntity(eid)
       stomped.add(eid)
       rb.vy          = -400
@@ -120,7 +120,7 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
     }
 
     // Hurt: overlap without stomp, not invincible
-    if (!state.isInvincible && !stomped.has(eid) && dx < 26 && Math.abs(dy) < 37) {
+    if (!state.isInvincible && !stomped.has(eid) && dx < 30 && Math.abs(dy) < 41) {
       state.isInvincible    = true
       state.invincibleTimer = INVINCIBLE_DUR
       state.flashTimer      = 0.1
