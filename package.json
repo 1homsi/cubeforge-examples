@@ -1,0 +1,10 @@
+{
+  "name": "cubeforge-examples",
+  "version": "0.0.1",
+  "private": true,
+  "workspaces": ["demo", "platformer"],
+  "scripts": {
+    "dev:demo":       "bun run --cwd demo dev",
+    "dev:platformer": "bun run --cwd platformer dev"
+  }
+}
