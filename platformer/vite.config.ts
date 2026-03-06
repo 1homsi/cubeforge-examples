@@ -2,8 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath } from 'url'
 
-// Assumes cubeforge/ and cubeforge-examples/ are sibling directories
-const engine = fileURLToPath(new URL('../cubeforge/packages', import.meta.url))
+// cubeforge/ and cubeforge-examples/ are sibling directories
+const engine = fileURLToPath(new URL('../../cubeforge/packages', import.meta.url))
 
 export default defineConfig({
   plugins: [react()],

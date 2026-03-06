@@ -13,11 +13,11 @@
     "noUnusedParameters": true,
     "types": ["node"],
     "paths": {
-      "@cubeforge/core":     ["../cubeforge/packages/core/src/index.ts"],
-      "@cubeforge/input":    ["../cubeforge/packages/input/src/index.ts"],
-      "@cubeforge/renderer": ["../cubeforge/packages/renderer/src/index.ts"],
-      "@cubeforge/physics":  ["../cubeforge/packages/physics/src/index.ts"],
-      "@cubeforge/react":    ["../cubeforge/packages/react/src/index.ts"]
+      "@cubeforge/core":     ["../../cubeforge/packages/core/src/index.ts"],
+      "@cubeforge/input":    ["../../cubeforge/packages/input/src/index.ts"],
+      "@cubeforge/renderer": ["../../cubeforge/packages/renderer/src/index.ts"],
+      "@cubeforge/physics":  ["../../cubeforge/packages/physics/src/index.ts"],
+      "@cubeforge/react":    ["../../cubeforge/packages/react/src/index.ts"]
     }
   },
   "include": ["src", "vite.config.ts"]
