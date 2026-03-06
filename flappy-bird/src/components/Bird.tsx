@@ -33,7 +33,7 @@ interface TagComponent {
 
 // ─── Script functions ────────────────────────────────────────────────────────
 function birdInit(id: EntityId): void {
-  birdStates.set(id, { vy: 0, dead: false })
+  birdStates.set(id, { vy: FLAP_FORCE, dead: false })
 }
 
 function birdUpdate(
