@@ -45,7 +45,7 @@ jobs:
           for example in platformer mario-clone breakout flappy-bird shooter top-down; do
             echo "▶ Building $example..."
             cd cubeforge-examples/$example
-            bunx vite build --base=/${example}/
+            bunx vite build --base=/cubeforge-examples/${example}/
             cd ../..
             cp -r cubeforge-examples/$example/dist site/$example
           done
