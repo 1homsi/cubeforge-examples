@@ -42,7 +42,7 @@ jobs:
       - name: Build examples
         run: |
           mkdir -p site
-          for example in platformer mario-clone breakout flappy-bird shooter top-down; do
+          for example in platformer mario-clone breakout flappy-bird shooter top-down playground; do
             echo "▶ Building $example..."
             cd cubeforge-examples/$example
             bunx vite build --base=/cubeforge-examples/${example}/
