@@ -1,59 +1,54 @@
 import { Entity, Transform, Sprite, RigidBody, BoxCollider, Script } from '@cubeforge/react'
-import type { EntityId, ECSWorld, TransformComponent, RigidBodyComponent } from '@cubeforge/react'
-
-const ENEMY_SPEED = 90
+import type { EntityId, ECSWorld, TransformComponent, RigidBodyComponent, SpriteComponent } from '@cubeforge/react'
 
 interface EnemyState {
-  direction: 1 | -1
-  leftBound: number
+  direction:  1 | -1
+  leftBound:  number
   rightBound: number
-  alive: boolean
 }
 
 const enemyStates = new Map<EntityId, EnemyState>()
 
-function enemyInit(entityId: EntityId, _world: ECSWorld, patrolLeft: number, patrolRight: number) {
-  enemyStates.set(entityId, {
-    direction: 1,
-    leftBound: patrolLeft,
-    rightBound: patrolRight,
-    alive: true,
-  })
+function enemyInit(id: EntityId, left: number, right: number) {
+  enemyStates.set(id, { direction: 1, leftBound: left, rightBound: right })
 }
 
-function enemyUpdate(entityId: EntityId, world: ECSWorld) {
-  const state = enemyStates.get(entityId)
-  if (!state || !state.alive) return
+function enemyUpdate(id: EntityId, world: ECSWorld) {
+  if (!world.hasEntity(id)) return
+  const state = enemyStates.get(id)
+  if (!state) return
 
-  const transform = world.getComponent<TransformComponent>(entityId, 'Transform')!
-  const rb = world.getComponent<RigidBodyComponent>(entityId, 'RigidBody')!
+  const transform = world.getComponent<TransformComponent>(id, 'Transform')!
+  const rb        = world.getComponent<RigidBodyComponent>(id, 'RigidBody')!
+  const sprite    = world.getComponent<SpriteComponent>(id, 'Sprite')!
 
-  // Reverse at patrol bounds
   if (transform.x >= state.rightBound) state.direction = -1
-  if (transform.x <= state.leftBound) state.direction = 1
+  if (transform.x <= state.leftBound)  state.direction =  1
 
-  rb.vx = ENEMY_SPEED * state.direction
+  rb.vx         = 80 * state.direction
+  sprite.flipX  = state.direction === -1
 }
 
 interface EnemyProps {
-  x?: number
-  y?: number
+  x?:          number
+  y?:          number
   patrolLeft?: number
   patrolRight?: number
+  speed?:      number
 }
 
-export function Enemy({ x = 400, y = 200, patrolLeft, patrolRight }: EnemyProps) {
-  const pLeft = patrolLeft ?? x - 120
-  const pRight = patrolRight ?? x + 120
+export function Enemy({ x = 400, y = 440, patrolLeft, patrolRight }: EnemyProps) {
+  const left  = patrolLeft  ?? x - 110
+  const right = patrolRight ?? x + 110
 
   return (
-    <Entity tags={['enemy', 'damageable']}>
+    <Entity tags={['enemy']}>
       <Transform x={x} y={y} />
       <Sprite width={28} height={34} color="#ef5350" zIndex={10} />
-      <RigidBody mass={1} gravityScale={1} friction={1} />
+      <RigidBody friction={1} />
       <BoxCollider width={26} height={34} />
       <Script
-        init={(id: EntityId, world: ECSWorld) => enemyInit(id, world, pLeft, pRight)}
+        init={(id) => enemyInit(id, left, right)}
         update={(id: EntityId, world: ECSWorld) => enemyUpdate(id, world)}
       />
     </Entity>
