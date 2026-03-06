@@ -3,8 +3,9 @@ import type { TransformOptions } from 'esbuild-wasm'
 let initialized = false
 let initPromise: Promise<void> | null = null
 
-async function ensureInitialized(): Promise<void> {
-  if (initialized) return
+// Call this on app mount so the WASM is ready before the user finishes reading
+export function preInit(): Promise<void> {
+  if (initialized) return Promise.resolve()
   if (initPromise) return initPromise
   initPromise = (async () => {
     const esbuild = await import('esbuild-wasm')
@@ -27,7 +28,7 @@ export interface CompileError {
 }
 
 export async function compile(source: string): Promise<CompileResult | CompileError> {
-  await ensureInitialized()
+  await preInit()
   const esbuild = await import('esbuild-wasm')
   const opts: TransformOptions = {
     loader: 'tsx',

@@ -64,6 +64,7 @@ html, body, #root { height: 100%; background: var(--bg); color: var(--text); fon
 .status.ok { color: var(--success); }
 .status.error { color: var(--error); }
 .status.building { color: var(--text-muted); }
+.status.loading { color: var(--text-muted); }
 
 .panels {
   display: flex;
