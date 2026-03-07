@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "react": "^18.3.0",
-    "react-dom": "^18.3.0"
+    "react-dom": "^18.3.0",
+    "cubeforge": "0.0.8"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

@@ -22,36 +22,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout both repos as siblings so path aliases resolve correctly.
-      # cubeforge-examples/platformer/vite.config.ts points to ../../cubeforge/packages
       - uses: actions/checkout@v4
-        with:
-          path: cubeforge-examples
-
-      - uses: actions/checkout@v4
-        with:
-          repository: 1homsi/cubeforge
-          path: cubeforge
 
       - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
         run: bun install
-        working-directory: cubeforge-examples
 
       - name: Build examples
         run: |
           mkdir -p site
           for example in platformer mario-clone breakout flappy-bird shooter top-down pong snake endless-runner asteroids playground; do
             echo "▶ Building $example..."
-            cd cubeforge-examples/$example
+            cd $example
             bunx vite build --base=/cubeforge-examples/${example}/
-            cd ../..
-            cp -r cubeforge-examples/$example/dist site/$example
+            cd ..
+            cp -r $example/dist site/$example
           done
 
       - name: Create root index
-        run: cp cubeforge-examples/index.html site/index.html
+        run: cp index.html site/index.html
 
       - uses: actions/configure-pages@v5
 
