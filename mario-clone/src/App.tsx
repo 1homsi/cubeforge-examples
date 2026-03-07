@@ -243,46 +243,46 @@ export function App() {
             })}
 
             {/* ── Goal flag ────────────────────────────────────────────────── */}
-            <GoalFlag x={1740} y={460} />
+            <GoalFlag key="goal" x={1740} y={460} />
 
             {/* ── Floor ────────────────────────────────────────────────────── */}
-            <Ground x={WORLD_W / 2} y={FLOOR_Y} width={WORLD_W} height={28} color="#5a3e1b" />
+            <Ground key="floor"  x={WORLD_W / 2} y={FLOOR_Y} width={WORLD_W} height={28} color="#5a3e1b" />
 
             {/* ── Left / right walls ───────────────────────────────────────── */}
-            <Ground x={-10}          y={300} width={20}  height={800} color="#5c94fc" />
-            <Ground x={WORLD_W + 10} y={300} width={20}  height={800} color="#5c94fc" />
+            <Ground key="wall-l" x={-10}          y={300} width={20}  height={800} color="#5c94fc" />
+            <Ground key="wall-r" x={WORLD_W + 10} y={300} width={20}  height={800} color="#5c94fc" />
 
             {/* ── Left section platforms (x 0–700) ─────────────────────────── */}
             {/* Low platforms */}
-            <Ground x={200}  y={456} width={130} height={18} color="#8b6914" />
-            <Ground x={430}  y={430} width={120} height={18} color="#8b6914" />
-            <Ground x={640}  y={456} width={120} height={18} color="#8b6914" />
+            <Ground key="l1a" x={200}  y={456} width={130} height={18} color="#8b6914" />
+            <Ground key="l1b" x={430}  y={430} width={120} height={18} color="#8b6914" />
+            <Ground key="l1c" x={640}  y={456} width={120} height={18} color="#8b6914" />
 
             {/* Mid platforms */}
-            <Ground x={280}  y={360} width={110} height={18} color="#7a5c10" />
-            <Ground x={500}  y={310} width={120} height={18} color="#7a5c10" />
+            <Ground key="l2a" x={280}  y={360} width={110} height={18} color="#7a5c10" />
+            <Ground key="l2b" x={500}  y={310} width={120} height={18} color="#7a5c10" />
 
             {/* High platform */}
-            <Ground x={400}  y={240} width={100} height={18} color="#6b4f0e" />
+            <Ground key="l3a" x={400}  y={240} width={100} height={18} color="#6b4f0e" />
 
             {/* ── Center section (x 700–1200) ───────────────────────────────── */}
-            <Ground x={760}  y={440} width={130} height={18} color="#8b6914" />
-            <Ground x={950}  y={400} width={120} height={18} color="#8b6914" />
+            <Ground key="c1a" x={760}  y={440} width={130} height={18} color="#8b6914" />
+            <Ground key="c1b" x={950}  y={400} width={120} height={18} color="#8b6914" />
 
-            <Ground x={840}  y={330} width={120} height={18} color="#7a5c10" />
-            <Ground x={1040} y={280} width={110} height={18} color="#7a5c10" />
+            <Ground key="c2a" x={840}  y={330} width={120} height={18} color="#7a5c10" />
+            <Ground key="c2b" x={1040} y={280} width={110} height={18} color="#7a5c10" />
 
-            <Ground x={920}  y={210} width={100} height={18} color="#6b4f0e" />
+            <Ground key="c3a" x={920}  y={210} width={100} height={18} color="#6b4f0e" />
 
             {/* ── Right section (x 1200–1800) ───────────────────────────────── */}
-            <Ground x={1250} y={440} width={130} height={18} color="#8b6914" />
-            <Ground x={1450} y={400} width={130} height={18} color="#8b6914" />
-            <Ground x={1650} y={440} width={150} height={18} color="#8b6914" />
+            <Ground key="r1a" x={1250} y={440} width={130} height={18} color="#8b6914" />
+            <Ground key="r1b" x={1450} y={400} width={130} height={18} color="#8b6914" />
+            <Ground key="r1c" x={1650} y={440} width={150} height={18} color="#8b6914" />
 
-            <Ground x={1330} y={330} width={120} height={18} color="#7a5c10" />
-            <Ground x={1530} y={270} width={110} height={18} color="#7a5c10" />
+            <Ground key="r2a" x={1330} y={330} width={120} height={18} color="#7a5c10" />
+            <Ground key="r2b" x={1530} y={270} width={110} height={18} color="#7a5c10" />
 
-            <Ground x={1420} y={200} width={100} height={18} color="#6b4f0e" />
+            <Ground key="r3a" x={1420} y={200} width={100} height={18} color="#6b4f0e" />
           </World>
         </Game>
 

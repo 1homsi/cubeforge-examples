@@ -172,56 +172,56 @@ export function App() {
             }
 
             {/* ── Floor ──────────────────────────────────────────────────── */}
-            <Ground x={WORLD_W / 2} y={FLOOR_Y}      width={WORLD_W} height={28} color="#1e272e" />
+            <Ground key="floor"  x={WORLD_W / 2} y={FLOOR_Y}      width={WORLD_W} height={28} color="#1e272e" />
 
             {/* ── Left wall / Right wall ──────────────────────────────────── */}
-            <Ground x={-10}          y={300} width={20}  height={800} color="#12131f" />
-            <Ground x={WORLD_W + 10} y={300} width={20}  height={800} color="#12131f" />
+            <Ground key="wall-l" x={-10}          y={300} width={20}  height={800} color="#12131f" />
+            <Ground key="wall-r" x={WORLD_W + 10} y={300} width={20}  height={800} color="#12131f" />
 
             {/* ── Left section (x 0–600) ──────────────────────────────────── */}
             {/* Tier 1 — low (one-way: jump through from below) */}
-            <Ground x={130}  y={450} width={160} height={18} color="#263238" oneWay />
-            <Ground x={340}  y={415} width={140} height={18} color="#263238" oneWay />
-            <Ground x={530}  y={380} width={130} height={18} color="#2e3a40" oneWay />
+            <Ground key="l1a" x={130}  y={450} width={160} height={18} color="#263238" oneWay />
+            <Ground key="l1b" x={340}  y={415} width={140} height={18} color="#263238" oneWay />
+            <Ground key="l1c" x={530}  y={380} width={130} height={18} color="#2e3a40" oneWay />
 
             {/* Tier 2 — mid */}
-            <Ground x={200}  y={320} width={120} height={18} color="#37474f" />
-            <Ground x={420}  y={285} width={110} height={18} color="#37474f" />
-            <Ground x={610}  y={310} width={120} height={18} color="#37474f" />
+            <Ground key="l2a" x={200}  y={320} width={120} height={18} color="#37474f" />
+            <Ground key="l2b" x={420}  y={285} width={110} height={18} color="#37474f" />
+            <Ground key="l2c" x={610}  y={310} width={120} height={18} color="#37474f" />
 
             {/* Moving platform — carries player left and right */}
-            <MovingPlatform x1={250} y1={360} x2={480} y2={360} width={100} duration={3} color="#1a6b8a" />
+            <MovingPlatform key="mp1" x1={250} y1={360} x2={480} y2={360} width={100} duration={3} color="#1a6b8a" />
 
             {/* Tier 3 — high */}
-            <Ground x={300}  y={215} width={100} height={18} color="#455a64" />
-            <Ground x={550}  y={185} width={110} height={18} color="#455a64" />
+            <Ground key="l3a" x={300}  y={215} width={100} height={18} color="#455a64" />
+            <Ground key="l3b" x={550}  y={185} width={110} height={18} color="#455a64" />
 
             {/* ── Center section (x 600–1100) ─────────────────────────────── */}
             {/* Tier 1 — low */}
-            <Ground x={730}  y={445} width={140} height={18} color="#263238" />
-            <Ground x={900}  y={405} width={130} height={18} color="#2e3a40" />
+            <Ground key="c1a" x={730}  y={445} width={140} height={18} color="#263238" />
+            <Ground key="c1b" x={900}  y={405} width={130} height={18} color="#2e3a40" />
 
             {/* Tier 2 — mid */}
-            <Ground x={780}  y={310} width={120} height={18} color="#37474f" />
-            <Ground x={980}  y={265} width={110} height={18} color="#37474f" />
+            <Ground key="c2a" x={780}  y={310} width={120} height={18} color="#37474f" />
+            <Ground key="c2b" x={980}  y={265} width={110} height={18} color="#37474f" />
 
             {/* Tier 3 — high */}
-            <Ground x={700}  y={210} width={100} height={18} color="#455a64" />
-            <Ground x={920}  y={165} width={100} height={18} color="#546e7a" />
+            <Ground key="c3a" x={700}  y={210} width={100} height={18} color="#455a64" />
+            <Ground key="c3b" x={920}  y={165} width={100} height={18} color="#546e7a" />
 
             {/* ── Right section (x 1100–1640) ──────────────────────────────── */}
             {/* Tier 1 — low */}
-            <Ground x={1070} y={445} width={140} height={18} color="#263238" />
-            <Ground x={1260} y={405} width={130} height={18} color="#2e3a40" />
-            <Ground x={1490} y={445} width={150} height={18} color="#263238" />
+            <Ground key="r1a" x={1070} y={445} width={140} height={18} color="#263238" />
+            <Ground key="r1b" x={1260} y={405} width={130} height={18} color="#2e3a40" />
+            <Ground key="r1c" x={1490} y={445} width={150} height={18} color="#263238" />
 
             {/* Tier 2 — mid */}
-            <Ground x={1160} y={295} width={120} height={18} color="#37474f" />
-            <Ground x={1380} y={255} width={120} height={18} color="#37474f" />
+            <Ground key="r2a" x={1160} y={295} width={120} height={18} color="#37474f" />
+            <Ground key="r2b" x={1380} y={255} width={120} height={18} color="#37474f" />
 
             {/* Tier 3 — high */}
-            <Ground x={1290} y={185} width={110} height={18} color="#455a64" />
-            <Ground x={1490} y={150} width={100} height={18} color="#546e7a" />
+            <Ground key="r3a" x={1290} y={185} width={110} height={18} color="#455a64" />
+            <Ground key="r3b" x={1490} y={150} width={100} height={18} color="#546e7a" />
           </World>
         </Game>
 

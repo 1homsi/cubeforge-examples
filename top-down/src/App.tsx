@@ -181,6 +181,7 @@ export function App() {
 
             {/* Exit door — top-right corner */}
             <Exit
+              key="exit"
               x={1130}
               y={60}
               keysCollected={keysCollected}
@@ -188,43 +189,34 @@ export function App() {
             />
 
             {/* ── Outer border walls ────────────────────────────────────── */}
-            {/* Top */}
-            <Wall x={WORLD_W / 2} y={0}        width={WORLD_W} height={20}  color="#2c1810" />
-            {/* Bottom */}
-            <Wall x={WORLD_W / 2} y={WORLD_H}  width={WORLD_W} height={20}  color="#2c1810" />
-            {/* Left */}
-            <Wall x={0}           y={WORLD_H / 2} width={20} height={WORLD_H} color="#2c1810" />
-            {/* Right */}
-            <Wall x={WORLD_W}     y={WORLD_H / 2} width={20} height={WORLD_H} color="#2c1810" />
+            <Wall key="border-t" x={WORLD_W / 2} y={0}        width={WORLD_W} height={20}  color="#2c1810" />
+            <Wall key="border-b" x={WORLD_W / 2} y={WORLD_H}  width={WORLD_W} height={20}  color="#2c1810" />
+            <Wall key="border-l" x={0}           y={WORLD_H / 2} width={20} height={WORLD_H} color="#2c1810" />
+            <Wall key="border-r" x={WORLD_W}     y={WORLD_H / 2} width={20} height={WORLD_H} color="#2c1810" />
 
             {/* ── Internal walls — room dividers ────────────────────────── */}
-            {/* Horizontal divider top half (with gap at center) */}
-            <Wall x={220}  y={340} width={420} height={22} color="#3e2723" />
-            <Wall x={780}  y={340} width={380} height={22} color="#3e2723" />
+            <Wall key="h1a" x={220}  y={340} width={420} height={22} color="#3e2723" />
+            <Wall key="h1b" x={780}  y={340} width={380} height={22} color="#3e2723" />
 
-            {/* Horizontal divider bottom half */}
-            <Wall x={280}  y={560} width={500} height={22} color="#3e2723" />
-            <Wall x={870}  y={560} width={320} height={22} color="#3e2723" />
+            <Wall key="h2a" x={280}  y={560} width={500} height={22} color="#3e2723" />
+            <Wall key="h2b" x={870}  y={560} width={320} height={22} color="#3e2723" />
 
-            {/* Vertical divider left side (gap in middle) */}
-            <Wall x={420}  y={160} width={22} height={280} color="#3e2723" />
-            <Wall x={420}  y={480} width={22} height={150} color="#3e2723" />
+            <Wall key="v1a" x={420}  y={160} width={22} height={280} color="#3e2723" />
+            <Wall key="v1b" x={420}  y={480} width={22} height={150} color="#3e2723" />
 
-            {/* Vertical divider center */}
-            <Wall x={680}  y={80}  width={22} height={220} color="#3e2723" />
-            <Wall x={680}  y={440} width={22} height={200} color="#3e2723" />
+            <Wall key="v2a" x={680}  y={80}  width={22} height={220} color="#3e2723" />
+            <Wall key="v2b" x={680}  y={440} width={22} height={200} color="#3e2723" />
 
-            {/* Vertical divider right side */}
-            <Wall x={940}  y={200} width={22} height={300} color="#3e2723" />
-            <Wall x={940}  y={640} width={22} height={200} color="#3e2723" />
+            <Wall key="v3a" x={940}  y={200} width={22} height={300} color="#3e2723" />
+            <Wall key="v3b" x={940}  y={640} width={22} height={200} color="#3e2723" />
 
             {/* ── Interior obstacles / pillars ──────────────────────────── */}
-            <Wall x={170}  y={480} width={60}  height={60}  color="#4e342e" />
-            <Wall x={590}  y={200} width={50}  height={50}  color="#4e342e" />
-            <Wall x={820}  y={460} width={50}  height={50}  color="#4e342e" />
-            <Wall x={280}  y={750} width={70}  height={50}  color="#4e342e" />
-            <Wall x={780}  y={700} width={60}  height={60}  color="#4e342e" />
-            <Wall x={1080} y={350} width={55}  height={55}  color="#4e342e" />
+            <Wall key="p1" x={170}  y={480} width={60}  height={60}  color="#4e342e" />
+            <Wall key="p2" x={590}  y={200} width={50}  height={50}  color="#4e342e" />
+            <Wall key="p3" x={820}  y={460} width={50}  height={50}  color="#4e342e" />
+            <Wall key="p4" x={280}  y={750} width={70}  height={50}  color="#4e342e" />
+            <Wall key="p5" x={780}  y={700} width={60}  height={60}  color="#4e342e" />
+            <Wall key="p6" x={1080} y={350} width={55}  height={55}  color="#4e342e" />
           </World>
         </Game>
 
