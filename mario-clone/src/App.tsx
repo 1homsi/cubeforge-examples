@@ -365,10 +365,10 @@ export function App() {
               <Entity><Transform x={1600} y={180} /><Sprite src="/SMB_Sprite_Island_(Ground).png" width={80} height={40} zIndex={0} /></Entity>
               <Entity><Transform x={2400} y={150} /><Sprite src="/SMB_Sprite_Island_(Ground).png" width={80} height={40} zIndex={0} /></Entity>
               <Entity><Transform x={3100} y={170} /><Sprite src="/SMB_Sprite_Island_(Ground).png" width={80} height={40} zIndex={0} /></Entity>
-              {/* Mushroom platforms (decorative) */}
-              <Entity><Transform x={680}  y={400} /><Sprite src="/SMB_Mushroom_Platform.png" width={64} height={28} zIndex={0} /></Entity>
-              <Entity><Transform x={1400} y={360} /><Sprite src="/SMB_Mushroom_Platform.png" width={64} height={28} zIndex={0} /></Entity>
-              <Entity><Transform x={2600} y={380} /><Sprite src="/SMB_Mushroom_Platform.png" width={64} height={28} zIndex={0} /></Entity>
+              {/* Mushroom platforms (decorative — pinned to floor level) */}
+              <Entity><Transform x={680}  y={floorY - 14} /><Sprite src="/SMB_Mushroom_Platform.png" width={64} height={28} zIndex={0} /></Entity>
+              <Entity><Transform x={1400} y={floorY - 14} /><Sprite src="/SMB_Mushroom_Platform.png" width={64} height={28} zIndex={0} /></Entity>
+              <Entity><Transform x={2600} y={floorY - 14} /><Sprite src="/SMB_Mushroom_Platform.png" width={64} height={28} zIndex={0} /></Entity>
 
               {/* Enemies */}
               <Goomba          x={320}  y={floorY - 16} patrolLeft={200}  patrolRight={450}  src="/SMB_Goomba_Sprite.gif" />
