@@ -1,5 +1,5 @@
 import { Entity, Transform, Sprite, RigidBody, BoxCollider, Script } from '@cubeforge/react'
-import { createInputMap } from '@cubeforge/react'
+import { createInputMap, findByTag } from '@cubeforge/react'
 import type { EntityId, ECSWorld, TransformComponent, RigidBodyComponent, SpriteComponent } from '@cubeforge/react'
 import type { InputManager } from '@cubeforge/react'
 import { gameCallbacks } from '../gameEvents'
@@ -99,10 +99,8 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
   // ── Enemy interactions ────────────────────────────────────────────────────
   const stomped = new Set<EntityId>()
 
-  for (const eid of world.query('Tag')) {
+  for (const eid of findByTag(world, 'enemy')) {
     if (eid === id || !world.hasEntity(eid)) continue
-    const tag = world.getComponent<{ type: 'Tag'; tags: string[] }>(eid, 'Tag')
-    if (!tag?.tags.includes('enemy')) continue
 
     const et = world.getComponent<TransformComponent>(eid, 'Transform')
     if (!et) continue
