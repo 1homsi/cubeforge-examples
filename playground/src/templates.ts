@@ -1,6 +1,8 @@
 export interface Template {
   id: string
   label: string
+  icon: string
+  description: string
   code: string
 }
 
@@ -8,6 +10,8 @@ export const TEMPLATES: Template[] = [
   {
     id: 'platformer',
     label: 'Platformer',
+    icon: '🏃',
+    description: 'Double jump, gravity, moving platforms',
     code: `import { createRoot } from 'react-dom/client'
 import { Game, World, Entity, Transform, Sprite, RigidBody, BoxCollider, Camera2D, useEntity, usePlatformerController } from 'cubeforge'
 
@@ -57,6 +61,8 @@ createRoot(document.getElementById('root')!).render(
   {
     id: 'top-down',
     label: 'Top-Down',
+    icon: '🎮',
+    description: '4-directional movement, wall collisions',
     code: `import { createRoot } from 'react-dom/client'
 import { Game, World, Entity, Transform, Sprite, RigidBody, BoxCollider, useEntity, useTopDownMovement } from 'cubeforge'
 
@@ -97,8 +103,8 @@ createRoot(document.getElementById('root')!).render(
       <Wall x={400} y={490} w={800} h={20} />
       <Wall x={10} y={250} w={20} h={500} />
       <Wall x={790} y={250} w={20} h={500} />
-      <Wall x={300} y={200} w={20} h={160} color="#37474f" />
-      <Wall x={500} y={300} w={20} h={160} color="#37474f" />
+      <Wall x={300} y={200} w={20} h={160} />
+      <Wall x={500} y={300} w={20} h={160} />
     </World>
   </Game>
 )
@@ -107,6 +113,8 @@ createRoot(document.getElementById('root')!).render(
   {
     id: 'empty',
     label: 'Empty',
+    icon: '✦',
+    description: 'Blank canvas — start from scratch',
     code: `import { createRoot } from 'react-dom/client'
 import { Game, World, Entity, Transform, Sprite, RigidBody, BoxCollider } from 'cubeforge'
 
