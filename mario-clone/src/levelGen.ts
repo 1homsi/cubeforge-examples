@@ -3,7 +3,7 @@ export const TILE      = 32
 export const FLOOR_H   = 64
 export const FLOOR_TOP = 492               // top edge of floor — where player/enemies stand
 export const FLOOR_Y   = FLOOR_TOP + Math.floor(FLOOR_H / 2)  // 524, center of floor strip
-export const BLOCK_Y   = 360   // center of standard floating block row
+export const BLOCK_Y   = 385   // center of standard floating block row
 export const BLOCK_Y2  = BLOCK_Y - TILE  // upper tier
 
 export const LEVEL_NAME:  Record<1|2|3, string> = { 1: 'WORLD 1-1', 2: 'WORLD 1-2', 3: 'WORLD 1-3' }
@@ -129,11 +129,19 @@ export function genLevel1(seed: number): LevelData {
   enemies.push({ type: 'billblaster', x: STAIR_X - 300, y: FLOOR_Y - 48, left: 0, right: 0, dir: 1, interval: 3.5 })
   enemies.push({ type: 'billblaster', x: STAIR_X - 80,  y: FLOOR_Y - 48, left: 0, right: 0, dir: 1, interval: 4.8 })
 
+  // Clouds (overworld only)
+  const decorations: LevelData['decorations'] = []
+  for (let x = 200; x < WORLD_W - 200; x += ri(rng, 300, 600)) {
+    const y = ri(rng, 80, 220)
+    const w = rc(rng, [96, 128, 160] as const)
+    decorations.push({ x, y, src: '/SMB3_Cloud_Block_tile_alt.png', w, h: Math.round(w * 0.6) })
+  }
+
   return {
     theme: 'overworld', bg: '#5c94fc', worldW: WORLD_W,
     floorSrc: '/SMB_Ground.png', brickSrc: '/SMB_Brick_Block_Sprite.png',
     coinSrc: '/SMB1_Sprite_Coin.gif', qBlockSrc: '/SMB_Question_Block.gif',
-    floorSegs, pipes, brickBlocks, qBlocks, coins, enemies, decorations: [], platforms: [],
+    floorSegs, pipes, brickBlocks, qBlocks, coins, enemies, decorations, platforms: [],
     piranhaXs, stairX: STAIR_X, goalX: GOAL_X,
   }
 }
