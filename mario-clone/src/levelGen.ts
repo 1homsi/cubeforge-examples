@@ -3,8 +3,8 @@ export const TILE      = 32
 export const FLOOR_H   = 64
 export const FLOOR_TOP = 492               // top edge of floor — where player/enemies stand
 export const FLOOR_Y   = FLOOR_TOP + Math.floor(FLOOR_H / 2)  // 524, center of floor strip
-export const BLOCK_Y   = 310   // center of standard floating block row
-export const BLOCK_Y2  = BLOCK_Y - TILE  // 278, upper tier
+export const BLOCK_Y   = 390   // center of standard floating block row
+export const BLOCK_Y2  = BLOCK_Y - TILE  // upper tier
 
 export const LEVEL_NAME:  Record<1|2|3, string> = { 1: 'WORLD 1-1', 2: 'WORLD 1-2', 3: 'WORLD 1-3' }
 export const LEVEL_THEME: Record<1|2|3, string> = { 1: 'OVERWORLD', 2: 'UNDERGROUND', 3: 'CASTLE' }
@@ -91,7 +91,7 @@ export function genLevel1(seed: number): LevelData {
   // Pipes
   const pipes: PipeDef[] = []
   const piranhaXs: number[] = []
-  const pipeXCandidates = [460, 780, pitX - 220, pitX + pitW + 220, pitX + pitW + 520]
+  const pipeXCandidates = [460, pitX - 220, pitX + pitW + 320]
   for (const px of pipeXCandidates) {
     if (px < 80 || px > WORLD_W - 100) continue
     if (px > pitX - 80 && px < pitX + pitW + 80) continue
@@ -148,7 +148,7 @@ export function genLevel2(seed: number): LevelData {
   // Pipes
   const pipes: PipeDef[] = []
   const piranhaXs: number[] = []
-  for (let x = 600; x < STAIR_X - 200; x += ri(rng, 450, 650)) {
+  for (let x = 600; x < STAIR_X - 200; x += ri(rng, 750, 1050)) {
     const h = 64
     pipes.push({ x, y: FLOOR_Y - h / 2, h, pipeTopY: FLOOR_Y - h })
     if (rng() > 0.4) piranhaXs.push(x)
@@ -215,7 +215,7 @@ export function genLevel3(seed: number): LevelData {
   // Pipes (gray)
   const pipes: PipeDef[] = []
   const piranhaXs: number[] = []
-  for (let x = 500; x < STAIR_X - 200; x += ri(rng, 500, 700)) {
+  for (let x = 500; x < STAIR_X - 200; x += ri(rng, 750, 1000)) {
     const h = 64
     pipes.push({ x, y: FLOOR_Y - h / 2, h, pipeTopY: FLOOR_Y - h, src: '/Warp_Pipe_Gray_SMB.png' })
     if (rng() > 0.4) piranhaXs.push(x)
