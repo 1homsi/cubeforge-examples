@@ -22,6 +22,7 @@ const actions = createInputMap({
 interface PlayerState {
   coyoteTimer:     number
   jumpBuffer:      number
+  jumpCooldown:    number
   jumpsLeft:       number
   facingRight:     boolean
   isInvincible:    boolean
@@ -35,6 +36,7 @@ function playerInit(id: EntityId) {
   playerStates.set(id, {
     coyoteTimer:     0,
     jumpBuffer:      0,
+    jumpCooldown:    0,
     jumpsLeft:       MAX_JUMPS,
     facingRight:     true,
     isInvincible:    false,
@@ -72,9 +74,12 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
     state.coyoteTimer = Math.max(0, state.coyoteTimer - dt)
   }
 
+  // ── Jump cooldown (prevents spam-jumping) ────────────────────────────────
+  state.jumpCooldown = Math.max(0, state.jumpCooldown - dt)
+
   // ── Jump buffer ───────────────────────────────────────────────────────────
-  if (actions.isActionPressed(input, 'jump')) state.jumpBuffer = JUMP_BUFFER
-  else                                         state.jumpBuffer = Math.max(0, state.jumpBuffer - dt)
+  if (actions.isActionPressed(input, 'jump') && state.jumpCooldown === 0) state.jumpBuffer = JUMP_BUFFER
+  else if (!actions.isActionPressed(input, 'jump'))                        state.jumpBuffer = Math.max(0, state.jumpBuffer - dt)
 
   // ── Horizontal movement ───────────────────────────────────────────────────
   const left  = actions.isActionDown(input, 'left')
@@ -91,6 +96,7 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
     state.jumpsLeft    = Math.max(0, state.jumpsLeft - 1)
     state.coyoteTimer  = 0
     state.jumpBuffer   = 0
+    state.jumpCooldown = 0.22
   }
 
   // Variable jump height — release early to cut arc short
