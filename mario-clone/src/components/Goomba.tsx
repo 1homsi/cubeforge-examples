@@ -25,7 +25,7 @@ function goombaUpdate(id: EntityId, world: ECSWorld) {
   if (transform.x >= state.rightBound) state.direction = -1
   if (transform.x <= state.leftBound)  state.direction =  1
 
-  rb.vx        = 80 * state.direction
+  rb.vx        = 70 * state.direction
   sprite.flipX = state.direction === -1
 }
 
@@ -43,9 +43,9 @@ export function Goomba({ x = 400, y = 465, patrolLeft, patrolRight }: GoombaProp
   return (
     <Entity tags={['enemy']}>
       <Transform x={x} y={y} />
-      <Sprite width={26} height={26} color="#8b4513" zIndex={10} />
+      <Sprite src="/Goomba_SMB.png" width={32} height={32} color="#8b4513" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={26} height={26} />
+      <BoxCollider width={30} height={30} />
       <Script
         init={(id) => goombaInit(id, left, right)}
         update={(id: EntityId, world: ECSWorld) => goombaUpdate(id, world)}

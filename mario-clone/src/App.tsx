@@ -1,65 +1,144 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Game, World, Camera2D } from '@cubeforge/react'
 import type { EntityId } from '@cubeforge/react'
-import { Player, playerConfig } from './components/Player'
-import { Goomba }        from './components/Goomba'
-import { Ground }        from './components/Ground'
-import { Coin }          from './components/Coin'
-import { QuestionBlock } from './components/QuestionBlock'
-import { Mushroom }      from './components/Mushroom'
-import { GoalFlag }      from './components/GoalFlag'
-import { gameEvents }    from './gameEvents'
+import { Player, playerConfig }  from './components/Player'
+import { Goomba }                from './components/Goomba'
+import { KoopaTroopa }           from './components/KoopaTroopa'
+import { PiranhaPlant }          from './components/PiranhaPlant'
+import { BillBlaster }           from './components/BillBlaster'
+import { HammerBro }             from './components/HammerBro'
+import { Bowser }                from './components/Bowser'
+import { Ground }                from './components/Ground'
+import { Coin }                  from './components/Coin'
+import { QuestionBlock }         from './components/QuestionBlock'
+import { BrickBlock }            from './components/BrickBlock'
+import { WarpPipe }              from './components/WarpPipe'
+import { Mushroom }              from './components/Mushroom'
+import { FireFlower }            from './components/FireFlower'
+import { StarItem }              from './components/StarItem'
+import { OneUpMushroom }         from './components/OneUpMushroom'
+import { GoalFlag }              from './components/GoalFlag'
+import { gameEvents }            from './gameEvents'
+import { preloadImage }          from './images'
+
+// ─── Preload all assets at module level ───────────────────────────────────────
+const ASSETS = [
+  '/ClassicNES_SMB_Small_Mario_Sprite.png',
+  '/ClassicNES_SMB_Super_Mario_Sprite.png',
+  '/SMB_Fire_Mario_Sprite.png',
+  '/Goomba_SMB.png',
+  '/SMB_Green_Koopa_Troopa_Sprite.png',
+  '/SMB_NES_Blue_Koopa_Troopa_Walking.gif',
+  '/SMB_Sprite_Piranha_Plant.png',
+  '/SMB_Sprite_Coin.png',
+  '/SMB_Qblock.png',
+  '/SMB1_Empty_Block.png',
+  '/SMB_Brick_Block_Sprite.png',
+  '/SMB_Underground_Brick_Block.png',
+  '/SMB_Castle_Brick_Block.png',
+  '/SMB_Supermushroom.png',
+  '/SMB_Sprite_Fire_Flower.png',
+  '/Starman.gif',
+  '/SMB_Sprite_Super_Star.png',
+  '/SMB_Sprite_1UP.png',
+  '/Warp_Pipe_SMB.png',
+  '/Warp_Pipe_Orange_SMB.png',
+  '/Bill_Blaster_Sprite_SMB.png',
+  '/Bullet_Bill_Super_Mario_Bros.png',
+  '/SMB_Hammer_Bro_Sprite.png',
+  '/SMB_Sprite_Axe.png',
+  '/SMB_Bowser_Sprite.png',
+  '/SMB_Goal_Pole.png',
+  '/SMBCastle.png',
+  '/SMBFireBall.gif',
+  '/SMB_Ground.png',
+  '/SMB_Ground_Underground.png',
+  '/SMBPlatform.png',
+  '/SMB_Hard_Block_Sprite.png',
+]
+ASSETS.forEach(preloadImage)
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const W         = 800
 const H         = 560
-const WORLD_W   = 1800
-const FLOOR_Y   = 506
 const MAX_LIVES = 3
-const TOTAL_COINS = 10
 
-// ─── Coin layout ──────────────────────────────────────────────────────────────
-const COIN_DEFS = [
-  { id:  1, x:  160, y: 420 },
-  { id:  2, x:  280, y: 340 },
-  { id:  3, x:  430, y: 265 },
-  { id:  4, x:  600, y: 390 },
-  { id:  5, x:  740, y: 310 },
-  { id:  6, x:  900, y: 240 },
-  { id:  7, x: 1060, y: 390 },
-  { id:  8, x: 1200, y: 300 },
-  { id:  9, x: 1380, y: 220 },
-  { id: 10, x: 1550, y: 390 },
-]
+// ─── Level configs ────────────────────────────────────────────────────────────
+const LEVELS = [1, 2, 3] as const
+type Level = typeof LEVELS[number]
 
-// ─── Question block layout ────────────────────────────────────────────────────
-interface BlockDef {
-  id:      number
-  x:       number
-  y:       number
-  reveals: 'coin' | 'mushroom'
-}
-const BLOCK_DEFS: BlockDef[] = [
-  { id: 1, x:  350, y: 310, reveals: 'mushroom' },
-  { id: 2, x:  820, y: 260, reveals: 'coin'     },
-  { id: 3, x: 1300, y: 250, reveals: 'coin'     },
-]
+const LEVEL_BG: Record<Level, string>     = { 1: '#5c94fc', 2: '#1a1a2e', 3: '#0a0a0f' }
+const LEVEL_WORLD_W: Record<Level, number> = { 1: 3600, 2: 3800, 3: 3000 }
+const LEVEL_FLOOR_Y: Record<Level, number> = { 1: 506,  2: 506,  3: 506  }
+const LEVEL_NAME: Record<Level, string>    = { 1: 'WORLD 1-1', 2: 'WORLD 1-2', 3: 'WORLD 1-3' }
+const LEVEL_THEME: Record<Level, string>   = { 1: 'OVERWORLD', 2: 'UNDERGROUND', 3: 'CASTLE' }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type GameState = 'playing' | 'gameover' | 'win'
+type GameState = 'playing' | 'gameover' | 'win' | 'levelclear'
 
-interface SpawnedReveal {
-  id:   number
-  type: 'coin' | 'mushroom'
-  x:    number
-  y:    number
-}
+type RevealType = 'coin' | 'mushroom' | 'fireFlower' | 'star' | 'oneUp'
+interface BlockDef { id: number; x: number; y: number; reveals: RevealType }
+interface SpawnedReveal { id: number; type: RevealType; x: number; y: number }
+
+// ─── Level layouts ────────────────────────────────────────────────────────────
+
+// ── Level 1: Overworld ────────────────────────────────────────────────────────
+const L1_FLOOR_Y = LEVEL_FLOOR_Y[1]
+const L1_W       = LEVEL_WORLD_W[1]
+const L1_COINS = [
+  { id:  1, x:  200, y: 420 }, { id:  2, x:  340, y: 340 },
+  { id:  3, x:  500, y: 260 }, { id:  4, x:  660, y: 380 },
+  { id:  5, x:  840, y: 310 }, { id:  6, x: 1040, y: 240 },
+  { id:  7, x: 1220, y: 380 }, { id:  8, x: 1440, y: 290 },
+  { id:  9, x: 1680, y: 220 }, { id: 10, x: 1900, y: 360 },
+  { id: 11, x: 2140, y: 280 }, { id: 12, x: 2400, y: 410 },
+  { id: 13, x: 2640, y: 320 }, { id: 14, x: 2900, y: 240 },
+  { id: 15, x: 3100, y: 390 },
+]
+const L1_BLOCKS: BlockDef[] = [
+  { id: 1, x:  400, y: 310, reveals: 'mushroom'   },
+  { id: 2, x:  900, y: 260, reveals: 'coin'        },
+  { id: 3, x: 1480, y: 250, reveals: 'fireFlower'  },
+  { id: 4, x: 2000, y: 300, reveals: 'coin'        },
+  { id: 5, x: 2700, y: 280, reveals: 'oneUp'       },
+]
+
+// ── Level 2: Underground ──────────────────────────────────────────────────────
+const L2_COINS = [
+  { id:  1, x:  240, y: 430 }, { id:  2, x:  380, y: 360 },
+  { id:  3, x:  520, y: 280 }, { id:  4, x:  700, y: 420 },
+  { id:  5, x:  880, y: 340 }, { id:  6, x: 1060, y: 260 },
+  { id:  7, x: 1260, y: 400 }, { id:  8, x: 1480, y: 320 },
+  { id:  9, x: 1700, y: 240 }, { id: 10, x: 1920, y: 380 },
+  { id: 11, x: 2140, y: 300 }, { id: 12, x: 2360, y: 240 },
+  { id: 13, x: 2600, y: 360 }, { id: 14, x: 2840, y: 280 },
+  { id: 15, x: 3080, y: 420 }, { id: 16, x: 3300, y: 340 },
+]
+const L2_BLOCKS: BlockDef[] = [
+  { id: 1, x:  600, y: 300, reveals: 'star'     },
+  { id: 2, x: 1200, y: 260, reveals: 'coin'     },
+  { id: 3, x: 1900, y: 280, reveals: 'oneUp'    },
+  { id: 4, x: 2600, y: 300, reveals: 'mushroom' },
+  { id: 5, x: 3200, y: 260, reveals: 'coin'     },
+]
+
+// ── Level 3: Castle ───────────────────────────────────────────────────────────
+const L3_COINS = [
+  { id:  1, x:  220, y: 420 }, { id:  2, x:  360, y: 350 },
+  { id:  3, x:  520, y: 280 }, { id:  4, x:  700, y: 400 },
+  { id:  5, x:  880, y: 330 }, { id:  6, x: 1080, y: 260 },
+  { id:  7, x: 1280, y: 390 }, { id:  8, x: 1500, y: 300 },
+  { id:  9, x: 1720, y: 240 }, { id: 10, x: 1960, y: 370 },
+]
+const L3_BLOCKS: BlockDef[] = [
+  { id: 1, x:  560, y: 310, reveals: 'fireFlower' },
+  { id: 2, x: 1300, y: 270, reveals: 'mushroom'   },
+  { id: 3, x: 2000, y: 290, reveals: 'star'        },
+]
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function Heart({ filled }: { filled: boolean }) {
-  return (
-    <span style={{ color: filled ? '#ef5350' : '#37474f', fontSize: 18, lineHeight: 1 }}>♥</span>
-  )
+  return <span style={{ color: filled ? '#ef5350' : '#37474f', fontSize: 18, lineHeight: 1 }}>♥</span>
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
@@ -67,13 +146,15 @@ export function App() {
   const [gameKey,        setGameKey]        = useState(0)
   const [score,          setScore]          = useState(0)
   const [lives,          setLives]          = useState(MAX_LIVES)
+  const [level,          setLevel]          = useState<Level>(1)
   const [gameState,      setGameState]      = useState<GameState>('playing')
   const [collectedCoins, setCollectedCoins] = useState<Set<number>>(new Set())
   const [revealedBlocks, setRevealedBlocks] = useState<Set<number>>(new Set())
   const [spawnedReveals, setSpawnedReveals] = useState<SpawnedReveal[]>([])
   const [hasMushroom,    setHasMushroom]    = useState(false)
+  const [hasFireFlower,  setHasFireFlower]  = useState(false)
+  const [hasStar,        setHasStar]        = useState(false)
 
-  // Wire game-script callbacks into React state
   useEffect(() => {
     gameEvents.onPlayerHurt = () => {
       setLives(prev => {
@@ -82,225 +163,403 @@ export function App() {
         return Math.max(0, next)
       })
     }
-    gameEvents.onEnemyKill = () => {
-      setScore(s => s + 100)
-    }
+    gameEvents.onEnemyKill = (pts: number) => setScore(s => s + pts)
     gameEvents.onMushroomGet = () => {
       playerConfig.maxJumps = 2
+      playerConfig.isBig    = true
       setHasMushroom(true)
-      setScore(s => s + 50)
+      setScore(s => s + 500)
+    }
+    gameEvents.onFireFlower = () => {
+      playerConfig.canFire = true
+      setHasFireFlower(true)
+      setScore(s => s + 500)
+    }
+    gameEvents.onStar = () => {
+      playerConfig.isStarActive = true
+      playerConfig.starTimer    = 8.0
+      setHasStar(true)
+      setScore(s => s + 1000)
+      setTimeout(() => setHasStar(false), 8000)
+    }
+    gameEvents.onOneUp = () => {
+      setLives(l => Math.min(l + 1, 9))
+      setScore(s => s + 200)
     }
     gameEvents.onGoalReached = () => {
-      setGameState('win')
+      setScore(s => s + 2000)
+      if (level < 3) {
+        setGameState('levelclear')
+      } else {
+        setGameState('win')
+      }
     }
     return () => {
       gameEvents.onPlayerHurt  = null
       gameEvents.onEnemyKill   = null
       gameEvents.onMushroomGet = null
+      gameEvents.onFireFlower  = null
+      gameEvents.onStar        = null
+      gameEvents.onOneUp       = null
       gameEvents.onGoalReached = null
     }
-  }, [gameKey])
+  }, [gameKey, level])
 
-  // Coin collect handler — keyed by coin id
   const handleCoinCollect = useCallback((_eid: EntityId, coinId: number) => {
     setCollectedCoins(prev => new Set([...prev, coinId]))
     setScore(s => s + 10)
   }, [])
 
-  // Revealed-spawn coin collect handler
   const handleRevealCoinCollect = useCallback((_eid: EntityId, revealId: number) => {
     setSpawnedReveals(prev => prev.filter(r => r.id !== revealId))
     setScore(s => s + 10)
   }, [])
 
-  // Question block reveal
-  const handleReveal = useCallback((blockId: number, type: 'coin' | 'mushroom', bx: number, by: number) => {
+  const handleReveal = useCallback((blockId: number, type: RevealType, bx: number, by: number) => {
     setRevealedBlocks(prev => new Set([...prev, blockId]))
-    // Spawn the item just above the block
     const revealId = blockId + 1000
     setSpawnedReveals(prev => [
       ...prev.filter(r => r.id !== revealId),
-      { id: revealId, type, x: bx, y: by - 48 },
+      { id: revealId, type, x: bx, y: by - 50 },
     ])
   }, [])
 
-  function restart() {
-    playerConfig.maxJumps = 1
-    setScore(0)
-    setLives(MAX_LIVES)
-    setGameState('playing')
+  function startLevel(lv: Level) {
+    playerConfig.maxJumps     = 1
+    playerConfig.isBig        = false
+    playerConfig.canFire      = false
+    playerConfig.isStarActive = false
+    playerConfig.starTimer    = 0
+    playerConfig.spawnX       = 80
+    playerConfig.spawnY       = LEVEL_FLOOR_Y[lv] - 60
+    setLevel(lv)
     setCollectedCoins(new Set())
     setRevealedBlocks(new Set())
     setSpawnedReveals([])
     setHasMushroom(false)
+    setHasFireFlower(false)
+    setHasStar(false)
+    setGameState('playing')
     setGameKey(k => k + 1)
   }
 
-  const collected = collectedCoins.size
+  function restart() {
+    setScore(0)
+    setLives(MAX_LIVES)
+    startLevel(1)
+  }
+
+  function nextLevel() {
+    const next = (level + 1) as Level
+    startLevel(next)
+  }
+
+  const floorY   = LEVEL_FLOOR_Y[level]
+  const worldW   = LEVEL_WORLD_W[level]
+  const bg       = LEVEL_BG[level]
+  const coinDefs = level === 1 ? L1_COINS : level === 2 ? L2_COINS : L3_COINS
+  const blockDefs= level === 1 ? L1_BLOCKS: level === 2 ? L2_BLOCKS: L3_BLOCKS
+  const totalCoins = coinDefs.length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
 
-      {/* ── HUD ────────────────────────────────────────────────────────────── */}
+      {/* ── HUD ──────────────────────────────────────────────────────────────── */}
       <div style={{
         width: W,
         display: 'grid',
         gridTemplateColumns: '1fr 1fr 1fr',
         alignItems: 'center',
         padding: '7px 18px',
-        background: '#1a1a2e',
+        background: '#0d0f1a',
         borderRadius: '10px 10px 0 0',
         fontSize: 13,
         color: '#90a4ae',
         letterSpacing: 1,
         userSelect: 'none',
       }}>
-        {/* Lives */}
+        {/* Lives + powerup icons */}
         <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-          {Array.from({ length: MAX_LIVES }, (_, i) => (
-            <Heart key={i} filled={i < lives} />
-          ))}
-          {hasMushroom && (
-            <span style={{ marginLeft: 6, fontSize: 12, color: '#e53935' }}>2x</span>
-          )}
+          {Array.from({ length: Math.min(lives, 9) }, (_, i) => <Heart key={i} filled={i < lives} />)}
+          {hasMushroom   && <span style={{ marginLeft: 4, fontSize: 11, color: '#ef5350' }}>●</span>}
+          {hasFireFlower && <span style={{ fontSize: 11, color: '#ff6f00' }}>🔥</span>}
+          {hasStar       && <span style={{ fontSize: 11, color: '#ffd600' }}>★</span>}
         </div>
 
-        {/* Score + coins */}
+        {/* Score */}
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1 }}>
           <span style={{ color: '#ffd700', fontWeight: 700, fontSize: 15, letterSpacing: 2 }}>
-            {String(score).padStart(5, '0')}
+            {String(score).padStart(6, '0')}
           </span>
           <span style={{ fontSize: 10, color: '#546e7a' }}>
-            {'●'.repeat(collected)}{'○'.repeat(TOTAL_COINS - collected)} {collected}/{TOTAL_COINS}
+            ●{collectedCoins.size}/{totalCoins} &nbsp; {LEVEL_NAME[level]}
           </span>
         </div>
 
-        {/* Right: lives label */}
-        <div style={{ textAlign: 'right', fontSize: 11, color: '#455a64' }}>
-          MARIO CLONE
+        {/* Level theme */}
+        <div style={{ textAlign: 'right', fontSize: 10, color: '#455a64', letterSpacing: 1 }}>
+          {LEVEL_THEME[level]}
         </div>
       </div>
 
-      {/* ── Game canvas + overlays ──────────────────────────────────────────── */}
+      {/* ── Game canvas ──────────────────────────────────────────────────────── */}
       <div style={{ position: 'relative', width: W, height: H }}>
-
         <Game key={gameKey} width={W} height={H} gravity={1000}>
-          <World background="#5c94fc">
-            <Camera2D followEntity="player" smoothing={0.88} background="#5c94fc" />
+          <World background={bg}>
+            <Camera2D followEntity="player" smoothing={0.88} background={bg} />
+            <Player x={80} y={floorY - 60} />
 
-            {/* Player */}
-            <Player x={80} y={420} />
+            {/* ── Level 1: Overworld ────────────────────────────────────────── */}
+            {level === 1 && <>
+              {/* Enemies */}
+              <Goomba      x={320}  y={floorY - 16} patrolLeft={200}  patrolRight={450}  />
+              <Goomba      x={700}  y={floorY - 16} patrolLeft={580}  patrolRight={840}  />
+              <Goomba      x={1100} y={floorY - 16} patrolLeft={960}  patrolRight={1260} />
+              <KoopaTroopa x={520}  y={floorY - 22} patrolLeft={420}  patrolRight={650}  />
+              <KoopaTroopa x={1500} y={floorY - 22} patrolLeft={1380} patrolRight={1660} />
+              <Goomba      x={520}  y={300}          patrolLeft={430}  patrolRight={640}  />
+              <Goomba      x={1900} y={floorY - 16} patrolLeft={1800} patrolRight={2050} />
+              <KoopaTroopa x={2300} y={floorY - 22} patrolLeft={2160} patrolRight={2460} />
+              <Goomba      x={2700} y={floorY - 16} patrolLeft={2580} patrolRight={2820} />
+              <BillBlaster x={3100} y={floorY - 48} dir={1} fireInterval={3.5} />
+              <BillBlaster x={3280} y={floorY - 48} dir={1} fireInterval={4.5} />
 
-            {/* ── Goombas ─────────────────────────────────────────────────── */}
-            <Goomba x={320}  y={465} patrolLeft={200}  patrolRight={450}  />
-            <Goomba x={680}  y={465} patrolLeft={580}  patrolRight={800}  />
-            <Goomba x={500}  y={295} patrolLeft={420}  patrolRight={590}  />
-            <Goomba x={1100} y={465} patrolLeft={970}  patrolRight={1230} />
-            <Goomba x={1480} y={465} patrolLeft={1380} patrolRight={1600} />
+              {/* Piranha plant in pipe */}
+              <PiranhaPlant x={760}  pipeTopY={floorY - 64} />
+              <PiranhaPlant x={2400} pipeTopY={floorY - 64} />
 
-            {/* ── Static coins ────────────────────────────────────────────── */}
-            {COIN_DEFS
-              .filter(c => !collectedCoins.has(c.id))
-              .map(c => (
-                <Coin
-                  key={c.id}
-                  x={c.x}
-                  y={c.y}
-                  onCollect={(eid) => handleCoinCollect(eid, c.id)}
-                />
-              ))
-            }
+              {/* Coins */}
+              {L1_COINS.filter(c => !collectedCoins.has(c.id)).map(c => (
+                <Coin key={c.id} x={c.x} y={c.y} onCollect={eid => handleCoinCollect(eid, c.id)} />
+              ))}
 
-            {/* ── Question blocks ──────────────────────────────────────────── */}
-            {BLOCK_DEFS
-              .filter(b => !revealedBlocks.has(b.id))
-              .map(b => (
-                <QuestionBlock
-                  key={b.id}
-                  x={b.x}
-                  y={b.y}
-                  reveals={b.reveals}
-                  onReveal={() => handleReveal(b.id, b.reveals, b.x, b.y)}
-                />
-              ))
-            }
+              {/* Question blocks */}
+              {L1_BLOCKS.filter(b => !revealedBlocks.has(b.id)).map(b => (
+                <QuestionBlock key={b.id} x={b.x} y={b.y} reveals={b.reveals}
+                  onReveal={() => handleReveal(b.id, b.reveals, b.x, b.y)} />
+              ))}
 
-            {/* ── Spawned reveals (coins / mushrooms from blocks) ──────────── */}
+              {/* Brick blocks */}
+              <BrickBlock x={360}  y={310} />
+              <BrickBlock x={440}  y={310} />
+              <BrickBlock x={860}  y={260} />
+              <BrickBlock x={940}  y={260} />
+              <BrickBlock x={1380} y={280} />
+              <BrickBlock x={1460} y={280} />
+              <BrickBlock x={2080} y={300} />
+              <BrickBlock x={2160} y={300} />
+              <BrickBlock x={2800} y={260} />
+              <BrickBlock x={2880} y={260} />
+
+              {/* Warp pipes */}
+              <WarpPipe x={760}  y={floorY - 32} height={64} />
+              <WarpPipe x={1240} y={floorY - 48} height={80} />
+              <WarpPipe x={2180} y={floorY - 32} height={64} />
+              <WarpPipe x={2980} y={floorY - 48} height={80} src="/Warp_Pipe_Orange_SMB.png" />
+
+              {/* Platforms — low */}
+              <Ground key="l1a" x={220}  y={floorY - 50} width={120} height={18} color="#7a5c10" />
+              <Ground key="l1b" x={460}  y={floorY - 76} width={110} height={18} color="#7a5c10" />
+              <Ground key="l1c" x={680}  y={floorY - 50} width={120} height={18} color="#7a5c10" />
+              {/* Platforms — mid */}
+              <Ground key="l2a" x={320}  y={floorY - 146} width={110} height={18} color="#6b4f0e" />
+              <Ground key="l2b" x={560}  y={floorY - 206} width={120} height={18} color="#6b4f0e" />
+              {/* Platforms — high */}
+              <Ground key="l3a" x={440}  y={floorY - 266} width={100} height={18} color="#5a3e1b" />
+
+              <Ground key="c1a" x={860}  y={floorY - 66} width={130} height={18} color="#7a5c10" />
+              <Ground key="c1b" x={1060} y={floorY - 106} width={120} height={18} color="#7a5c10" />
+              <Ground key="c2a" x={960}  y={floorY - 176} width={120} height={18} color="#6b4f0e" />
+              <Ground key="c2b" x={1160} y={floorY - 236} width={110} height={18} color="#6b4f0e" />
+              <Ground key="c3a" x={1060} y={floorY - 296} width={100} height={18} color="#5a3e1b" />
+
+              <Ground key="r1a" x={1420} y={floorY - 66} width={140} height={18} color="#7a5c10" />
+              <Ground key="r1b" x={1640} y={floorY - 50} width={140} height={18} color="#7a5c10" />
+              <Ground key="r2a" x={1520} y={floorY - 146} width={120} height={18} color="#6b4f0e" />
+              <Ground key="r2b" x={1760} y={floorY - 206} width={110} height={18} color="#6b4f0e" />
+              <Ground key="r3a" x={1640} y={floorY - 286} width={100} height={18} color="#5a3e1b" />
+
+              <Ground key="rr1" x={2060} y={floorY - 66} width={130} height={18} color="#7a5c10" />
+              <Ground key="rr2" x={2280} y={floorY - 116} width={120} height={18} color="#7a5c10" />
+              <Ground key="rr3" x={2500} y={floorY - 66} width={120} height={18} color="#7a5c10" />
+              <Ground key="rr4" x={2720} y={floorY - 116} width={110} height={18} color="#6b4f0e" />
+              <Ground key="rr5" x={2900} y={floorY - 186} width={100} height={18} color="#5a3e1b" />
+
+              {/* Floor — with pit at ~x 1800–2100 */}
+              <Ground key="floor-l" x={900}           y={floorY} width={1800} height={28} color="#5a3e1b" />
+              <Ground key="floor-r" x={2850}          y={floorY} width={1500} height={28} color="#5a3e1b" />
+
+              {/* Walls */}
+              <Ground key="wall-l" x={-10}         y={300} width={20}  height={800} color={bg} />
+              <Ground key="wall-r" x={worldW + 10} y={300} width={20}  height={800} color={bg} />
+
+              {/* Goal */}
+              <GoalFlag key="goal" x={3440} y={floorY - 80} />
+            </>}
+
+            {/* ── Level 2: Underground ─────────────────────────────────────── */}
+            {level === 2 && <>
+              {/* Ceiling decoration */}
+              <Ground key="ceil" x={worldW / 2} y={60} width={worldW} height={40} color="#263238" />
+
+              {/* Enemies */}
+              <Goomba      x={320}  y={floorY - 16} patrolLeft={200}  patrolRight={480}  />
+              <Goomba      x={700}  y={floorY - 16} patrolLeft={560}  patrolRight={880}  />
+              <KoopaTroopa x={540}  y={floorY - 22} patrolLeft={420}  patrolRight={680}  src="/SMB_NES_Blue_Koopa_Troopa_Walking.gif" />
+              <Goomba      x={1060} y={floorY - 16} patrolLeft={900}  patrolRight={1200} />
+              <KoopaTroopa x={1380} y={floorY - 22} patrolLeft={1240} patrolRight={1560} />
+              <Goomba      x={1760} y={floorY - 16} patrolLeft={1600} patrolRight={1940} />
+              <KoopaTroopa x={2100} y={floorY - 22} patrolLeft={1960} patrolRight={2240} />
+              <Goomba      x={2400} y={floorY - 16} patrolLeft={2280} patrolRight={2560} />
+              <BillBlaster x={2600} y={floorY - 48} dir={1}  fireInterval={3.0} />
+              <BillBlaster x={3000} y={floorY - 48} dir={-1} fireInterval={3.5} />
+              <BillBlaster x={3400} y={floorY - 48} dir={1}  fireInterval={4.0} />
+              <PiranhaPlant x={860}  pipeTopY={floorY - 64} />
+              <PiranhaPlant x={1580} pipeTopY={floorY - 64} />
+              <PiranhaPlant x={2820} pipeTopY={floorY - 64} src="/SMB_Piranha_Plant_Underground_Sprite.png" />
+
+              {/* Coins */}
+              {L2_COINS.filter(c => !collectedCoins.has(c.id)).map(c => (
+                <Coin key={c.id} x={c.x} y={c.y} onCollect={eid => handleCoinCollect(eid, c.id)} />
+              ))}
+
+              {/* Question blocks */}
+              {L2_BLOCKS.filter(b => !revealedBlocks.has(b.id)).map(b => (
+                <QuestionBlock key={b.id} x={b.x} y={b.y} reveals={b.reveals}
+                  onReveal={() => handleReveal(b.id, b.reveals, b.x, b.y)} />
+              ))}
+
+              {/* Brick rows */}
+              {[200, 240, 280, 320, 360].map(x => <BrickBlock key={`b1-${x}`} x={x} y={floorY - 160} />)}
+              {[680, 720, 760, 800].map(x => <BrickBlock key={`b2-${x}`} x={x} y={floorY - 120} />)}
+              {[1100, 1140, 1180, 1220, 1260].map(x => <BrickBlock key={`b3-${x}`} x={x} y={floorY - 170} />)}
+              {[1560, 1600, 1640].map(x => <BrickBlock key={`b4-${x}`} x={x} y={floorY - 130} />)}
+              {[1960, 2000, 2040, 2080].map(x => <BrickBlock key={`b5-${x}`} x={x} y={floorY - 160} />)}
+              {[2300, 2340, 2380, 2420, 2460].map(x => <BrickBlock key={`b6-${x}`} x={x} y={floorY - 120} />)}
+              {[3100, 3140, 3180, 3220].map(x => <BrickBlock key={`b7-${x}`} x={x} y={floorY - 170} />)}
+
+              {/* Platforms */}
+              <Ground key="p1" x={340}  y={floorY - 150} width={180} height={18} color="#37474f" />
+              <Ground key="p2" x={740}  y={floorY - 110} width={160} height={18} color="#37474f" />
+              <Ground key="p3" x={1160} y={floorY - 160} width={200} height={18} color="#37474f" />
+              <Ground key="p4" x={1600} y={floorY - 120} width={160} height={18} color="#37474f" />
+              <Ground key="p5" x={2020} y={floorY - 150} width={180} height={18} color="#37474f" />
+              <Ground key="p6" x={2380} y={floorY - 110} width={200} height={18} color="#37474f" />
+              <Ground key="p7" x={3160} y={floorY - 160} width={180} height={18} color="#37474f" />
+
+              {/* Warp pipes */}
+              <WarpPipe x={860}  y={floorY - 32} height={64} />
+              <WarpPipe x={1580} y={floorY - 32} height={64} />
+              <WarpPipe x={2820} y={floorY - 32} height={64} />
+
+              {/* Floor */}
+              <Ground key="floor" x={worldW / 2} y={floorY} width={worldW} height={28} color="#263238" />
+              <Ground key="wall-l" x={-10}         y={300} width={20}  height={800} color={bg} />
+              <Ground key="wall-r" x={worldW + 10} y={300} width={20}  height={800} color={bg} />
+
+              {/* Goal */}
+              <GoalFlag key="goal" x={worldW - 160} y={floorY - 80} />
+            </>}
+
+            {/* ── Level 3: Castle ──────────────────────────────────────────── */}
+            {level === 3 && <>
+              {/* Enemies */}
+              <Goomba      x={300}  y={floorY - 16} patrolLeft={180}  patrolRight={440} />
+              <HammerBro   x={560}  y={floorY - 22} patrolLeft={460}  patrolRight={680} />
+              <KoopaTroopa x={800}  y={floorY - 22} patrolLeft={680}  patrolRight={960} />
+              <HammerBro   x={1100} y={floorY - 22} patrolLeft={980}  patrolRight={1220}/>
+              <Goomba      x={1340} y={floorY - 16} patrolLeft={1220} patrolRight={1500}/>
+              <KoopaTroopa x={1620} y={floorY - 22} patrolLeft={1480} patrolRight={1780}/>
+              <HammerBro   x={1880} y={floorY - 22} patrolLeft={1760} patrolRight={2060}/>
+              <BillBlaster x={2120} y={floorY - 48} dir={1}  fireInterval={3.0} />
+              <BillBlaster x={2400} y={floorY - 48} dir={-1} fireInterval={3.5} />
+              <PiranhaPlant x={680}  pipeTopY={floorY - 64} />
+              <PiranhaPlant x={1460} pipeTopY={floorY - 64} />
+              {/* Bowser at the end */}
+              <Bowser x={2720} y={floorY - 40} patrolLeft={2600} patrolRight={2840} />
+
+              {/* Coins */}
+              {L3_COINS.filter(c => !collectedCoins.has(c.id)).map(c => (
+                <Coin key={c.id} x={c.x} y={c.y} onCollect={eid => handleCoinCollect(eid, c.id)} />
+              ))}
+
+              {/* Question blocks */}
+              {L3_BLOCKS.filter(b => !revealedBlocks.has(b.id)).map(b => (
+                <QuestionBlock key={b.id} x={b.x} y={b.y} reveals={b.reveals}
+                  onReveal={() => handleReveal(b.id, b.reveals, b.x, b.y)} />
+              ))}
+
+              {/* Brick platforms */}
+              {[280, 320, 360, 400].map(x => <BrickBlock key={`b1-${x}`} x={x} y={floorY - 150} />)}
+              {[700, 740, 780].map(x => <BrickBlock key={`b2-${x}`} x={x} y={floorY - 120} />)}
+              {[1100, 1140, 1180, 1220].map(x => <BrickBlock key={`b3-${x}`} x={x} y={floorY - 170} />)}
+              {[1500, 1540, 1580].map(x => <BrickBlock key={`b4-${x}`} x={x} y={floorY - 130} />)}
+              {[1880, 1920, 1960, 2000].map(x => <BrickBlock key={`b5-${x}`} x={x} y={floorY - 160} />)}
+
+              {/* Hard block platforms */}
+              <Ground key="h1" x={440}  y={floorY - 150} width={160} height={18} src="/SMB_Hard_Block_Sprite.png" color="#455a64" />
+              <Ground key="h2" x={860}  y={floorY - 110} width={140} height={18} src="/SMB_Hard_Block_Sprite.png" color="#455a64" />
+              <Ground key="h3" x={1280} y={floorY - 160} width={180} height={18} src="/SMB_Hard_Block_Sprite.png" color="#455a64" />
+              <Ground key="h4" x={1680} y={floorY - 120} width={140} height={18} src="/SMB_Hard_Block_Sprite.png" color="#455a64" />
+              <Ground key="h5" x={2060} y={floorY - 150} width={160} height={18} src="/SMB_Hard_Block_Sprite.png" color="#455a64" />
+
+              {/* Warp pipes */}
+              <WarpPipe x={680}  y={floorY - 32} height={64} src="/Warp_Pipe_Gray_SMB.png" />
+              <WarpPipe x={1460} y={floorY - 32} height={64} src="/Warp_Pipe_Gray_SMB.png" />
+
+              {/* Floor */}
+              <Ground key="floor" x={worldW / 2} y={floorY} width={worldW} height={28} color="#37474f" />
+              <Ground key="wall-l" x={-10}         y={300} width={20}  height={800} color={bg} />
+              <Ground key="wall-r" x={worldW + 10} y={300} width={20}  height={800} color={bg} />
+
+              {/* Decorative castle in background */}
+              <Ground key="bg-castle" x={2720} y={floorY - 80} width={200} height={140} color="#1c1c2e" />
+            </>}
+
+            {/* ── Spawned reveals (shared across all levels) ────────────────── */}
             {spawnedReveals.map(r => {
-              if (r.type === 'mushroom') {
-                return (
-                  <Mushroom key={r.id} x={r.x} y={r.y} />
-                )
-              }
+              if (r.type === 'mushroom')   return <Mushroom     key={r.id} x={r.x} y={r.y} />
+              if (r.type === 'fireFlower') return <FireFlower   key={r.id} x={r.x} y={r.y} />
+              if (r.type === 'star')       return <StarItem     key={r.id} x={r.x} y={r.y} />
+              if (r.type === 'oneUp')      return <OneUpMushroom key={r.id} x={r.x} y={r.y} />
               return (
-                <Coin
-                  key={r.id}
-                  x={r.x}
-                  y={r.y}
-                  onCollect={(eid) => handleRevealCoinCollect(eid, r.id)}
-                />
+                <Coin key={r.id} x={r.x} y={r.y}
+                  onCollect={eid => handleRevealCoinCollect(eid, r.id)} />
               )
             })}
-
-            {/* ── Goal flag ────────────────────────────────────────────────── */}
-            <GoalFlag key="goal" x={1740} y={460} />
-
-            {/* ── Floor ────────────────────────────────────────────────────── */}
-            <Ground key="floor"  x={WORLD_W / 2} y={FLOOR_Y} width={WORLD_W} height={28} color="#5a3e1b" />
-
-            {/* ── Left / right walls ───────────────────────────────────────── */}
-            <Ground key="wall-l" x={-10}          y={300} width={20}  height={800} color="#5c94fc" />
-            <Ground key="wall-r" x={WORLD_W + 10} y={300} width={20}  height={800} color="#5c94fc" />
-
-            {/* ── Left section platforms (x 0–700) ─────────────────────────── */}
-            {/* Low platforms */}
-            <Ground key="l1a" x={200}  y={456} width={130} height={18} color="#8b6914" />
-            <Ground key="l1b" x={430}  y={430} width={120} height={18} color="#8b6914" />
-            <Ground key="l1c" x={640}  y={456} width={120} height={18} color="#8b6914" />
-
-            {/* Mid platforms */}
-            <Ground key="l2a" x={280}  y={360} width={110} height={18} color="#7a5c10" />
-            <Ground key="l2b" x={500}  y={310} width={120} height={18} color="#7a5c10" />
-
-            {/* High platform */}
-            <Ground key="l3a" x={400}  y={240} width={100} height={18} color="#6b4f0e" />
-
-            {/* ── Center section (x 700–1200) ───────────────────────────────── */}
-            <Ground key="c1a" x={760}  y={440} width={130} height={18} color="#8b6914" />
-            <Ground key="c1b" x={950}  y={400} width={120} height={18} color="#8b6914" />
-
-            <Ground key="c2a" x={840}  y={330} width={120} height={18} color="#7a5c10" />
-            <Ground key="c2b" x={1040} y={280} width={110} height={18} color="#7a5c10" />
-
-            <Ground key="c3a" x={920}  y={210} width={100} height={18} color="#6b4f0e" />
-
-            {/* ── Right section (x 1200–1800) ───────────────────────────────── */}
-            <Ground key="r1a" x={1250} y={440} width={130} height={18} color="#8b6914" />
-            <Ground key="r1b" x={1450} y={400} width={130} height={18} color="#8b6914" />
-            <Ground key="r1c" x={1650} y={440} width={150} height={18} color="#8b6914" />
-
-            <Ground key="r2a" x={1330} y={330} width={120} height={18} color="#7a5c10" />
-            <Ground key="r2b" x={1530} y={270} width={110} height={18} color="#7a5c10" />
-
-            <Ground key="r3a" x={1420} y={200} width={100} height={18} color="#6b4f0e" />
           </World>
         </Game>
+
+        {/* ── Level Clear overlay ──────────────────────────────────────────── */}
+        {gameState === 'levelclear' && (
+          <div style={overlayStyle}>
+            <div style={cardStyle}>
+              <p style={{ fontSize: 11, letterSpacing: 4, color: '#4caf50', marginBottom: 8 }}>
+                LEVEL CLEAR
+              </p>
+              <p style={{ fontSize: 36, fontWeight: 900, color: '#fff', letterSpacing: 3 }}>
+                {LEVEL_NAME[level]}
+              </p>
+              <p style={{ fontSize: 13, color: '#90a4ae', margin: '12px 0 4px' }}>
+                Score &nbsp;<strong style={{ color: '#ffd700' }}>{score}</strong>
+              </p>
+              <button onClick={nextLevel} style={btnStyle}>Next Level →</button>
+            </div>
+          </div>
+        )}
 
         {/* ── Win overlay ──────────────────────────────────────────────────── */}
         {gameState === 'win' && (
           <div style={overlayStyle}>
             <div style={cardStyle}>
-              <p style={{ fontSize: 11, letterSpacing: 4, color: '#4caf50', marginBottom: 8 }}>
-                FLAG REACHED
+              <p style={{ fontSize: 11, letterSpacing: 4, color: '#ffd700', marginBottom: 8 }}>
+                BOWSER DEFEATED
               </p>
               <p style={{ fontSize: 36, fontWeight: 900, color: '#fff', letterSpacing: 3 }}>
                 YOU WIN!
               </p>
               <p style={{ fontSize: 13, color: '#90a4ae', margin: '12px 0 4px' }}>
-                Score &nbsp;<strong style={{ color: '#ffd700' }}>{score}</strong>
-              </p>
-              <p style={{ fontSize: 12, color: '#546e7a' }}>
-                Coins &nbsp;{collected}/{TOTAL_COINS}
+                Final Score &nbsp;<strong style={{ color: '#ffd700' }}>{score}</strong>
               </p>
               <button onClick={restart} style={btnStyle}>Play Again</button>
             </div>
@@ -312,18 +571,15 @@ export function App() {
           <div style={overlayStyle}>
             <div style={cardStyle}>
               <p style={{ fontSize: 11, letterSpacing: 4, color: '#ef5350', marginBottom: 8 }}>
-                OUT OF LIVES
+                GAME OVER
               </p>
               <p style={{ fontSize: 36, fontWeight: 900, color: '#fff', letterSpacing: 3 }}>
-                GAME OVER
+                TRY AGAIN
               </p>
               <p style={{ fontSize: 13, color: '#90a4ae', margin: '12px 0 4px' }}>
                 Score &nbsp;<strong style={{ color: '#ffd700' }}>{score}</strong>
               </p>
-              <p style={{ fontSize: 12, color: '#546e7a' }}>
-                Coins &nbsp;{collected}/{TOTAL_COINS}
-              </p>
-              <button onClick={restart} style={btnStyle}>Try Again</button>
+              <button onClick={restart} style={btnStyle}>Restart</button>
             </div>
           </div>
         )}
@@ -332,7 +588,7 @@ export function App() {
       {/* ── Controls hint ────────────────────────────────────────────────────── */}
       <div style={{
         width: W,
-        background: '#1a1a2e',
+        background: '#0d0f1a',
         borderRadius: '0 0 10px 10px',
         padding: '6px 18px',
         fontSize: 11,
@@ -341,43 +597,26 @@ export function App() {
         display: 'flex',
         justifyContent: 'space-between',
       }}>
-        <span>WASD/Arrows — move · Space/Up — jump · Stomp enemies · Collect mushroom for double jump</span>
-        <span style={{ color: '#263238' }}>Cubeforge Engine</span>
+        <span>A/D · ←→ move &nbsp;·&nbsp; W/↑/Space jump &nbsp;·&nbsp; X/Z fire (after flower) &nbsp;·&nbsp; stomp enemies &nbsp;·&nbsp; defeat Bowser on World 3</span>
+        <span style={{ color: '#263238' }}>Cubeforge</span>
       </div>
     </div>
   )
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
 const overlayStyle: React.CSSProperties = {
-  position:       'absolute',
-  inset:          0,
-  display:        'flex',
-  alignItems:     'center',
-  justifyContent: 'center',
-  background:     'rgba(10, 10, 18, 0.82)',
-  backdropFilter: 'blur(4px)',
+  position: 'absolute', inset: 0,
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: 'rgba(10,10,18,0.85)', backdropFilter: 'blur(4px)',
 }
-
 const cardStyle: React.CSSProperties = {
-  textAlign:    'center',
-  fontFamily:   '"Courier New", monospace',
-  padding:      '36px 48px',
-  background:   '#0d0f1a',
-  border:       '1px solid #1e2535',
-  borderRadius: 12,
+  textAlign: 'center', fontFamily: '"Courier New", monospace',
+  padding: '36px 48px', background: '#0d0f1a',
+  border: '1px solid #1e2535', borderRadius: 12,
 }
-
 const btnStyle: React.CSSProperties = {
-  marginTop:     24,
-  padding:       '10px 32px',
-  background:    '#ffd700',
-  color:         '#0a0a0f',
-  border:        'none',
-  borderRadius:  6,
-  fontFamily:    '"Courier New", monospace',
-  fontSize:      13,
-  fontWeight:    700,
-  letterSpacing: 2,
-  cursor:        'pointer',
+  marginTop: 24, padding: '10px 32px', background: '#ffd700',
+  color: '#0a0a0f', border: 'none', borderRadius: 6,
+  fontFamily: '"Courier New", monospace', fontSize: 13,
+  fontWeight: 700, letterSpacing: 2, cursor: 'pointer',
 }

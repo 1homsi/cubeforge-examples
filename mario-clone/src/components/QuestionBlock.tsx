@@ -18,28 +18,23 @@ function blockUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number)
   const sprite    = world.getComponent<SpriteComponent>(id, 'Sprite')
   if (!transform || !sprite) return
 
-  // Bounce animation
   if (state.bounceTimer > 0) {
     state.bounceTimer -= dt
     const t = 1 - state.bounceTimer / 0.2
-    transform.y = state.spawnY - Math.sin(t * Math.PI) * 8
+    transform.y = state.spawnY - Math.sin(t * Math.PI) * 10
     if (state.bounceTimer <= 0) transform.y = state.spawnY
   }
 
   if (state.hit) return
 
-  // Check if a player is jumping up and hitting this block from below
   const pid = world.findByTag('player')
   if (pid) {
     const pt = world.getComponent<TransformComponent>(pid, 'Transform')
     const rb = world.getComponent<RigidBodyComponent>(pid, 'RigidBody')
     if (pt && rb) {
-
-    // Player moving upward (rb.vy < 0), player's top edge near block's bottom edge
-    const dx = Math.abs(pt.x - transform.x)
-    // player top = pt.y - 20, block bottom = transform.y + 16
-    const playerTop  = pt.y - 20
-    const blockBottom = transform.y + 16
+      const dx = Math.abs(pt.x - transform.x)
+      const playerTop   = pt.y - 20
+      const blockBottom = transform.y + 16
 
       if (
         rb.vy < 0 &&
@@ -49,10 +44,10 @@ function blockUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number)
       ) {
         state.hit         = true
         state.bounceTimer = 0.2
-        sprite.color      = '#a0522d'
+        sprite.src        = '/SMB1_Empty_Block.png'
+        sprite.image      = undefined
         const meta = world.getComponent<BlockMeta>(id, 'BlockMeta')
         meta?.onReveal()
-        return
       }
     }
   }
@@ -66,7 +61,7 @@ interface BlockMeta {
 interface QuestionBlockProps {
   x:        number
   y:        number
-  reveals:  'coin' | 'mushroom'
+  reveals:  'coin' | 'mushroom' | 'fireFlower' | 'star' | 'oneUp'
   onReveal: () => void
 }
 
@@ -74,7 +69,7 @@ export function QuestionBlock({ x, y, onReveal }: QuestionBlockProps) {
   return (
     <Entity tags={['questionBlock']}>
       <Transform x={x} y={y} />
-      <Sprite width={32} height={32} color="#f5a623" zIndex={3} />
+      <Sprite src="/SMB_Qblock.png" width={32} height={32} color="#f5a623" zIndex={3} />
       <RigidBody isStatic />
       <BoxCollider width={32} height={32} />
       <Script

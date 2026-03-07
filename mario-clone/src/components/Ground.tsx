@@ -6,13 +6,15 @@ interface GroundProps {
   width: number
   height?: number
   color?: string
+  src?: string
+  zIndex?: number
 }
 
-export function Ground({ x, y, width, height = 28, color = '#5a3e1b' }: GroundProps) {
+export function Ground({ x, y, width, height = 28, color = '#5a3e1b', src, zIndex = 2 }: GroundProps) {
   return (
     <Entity>
       <Transform x={x} y={y} />
-      <Sprite width={width} height={height} color={color} zIndex={2} />
+      <Sprite width={width} height={height} color={color} src={src} zIndex={zIndex} />
       <RigidBody isStatic />
       <BoxCollider width={width} height={height} />
     </Entity>

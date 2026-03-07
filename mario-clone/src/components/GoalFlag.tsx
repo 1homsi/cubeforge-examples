@@ -21,11 +21,20 @@ interface GoalFlagProps {
 
 export function GoalFlag({ x, y }: GoalFlagProps) {
   return (
-    <Entity tags={['goalFlag']}>
-      <Transform x={x} y={y} />
-      <Sprite width={16} height={64} color="#4caf50" zIndex={4} />
-      <BoxCollider width={16} height={64} isTrigger />
-      <GoalActivator />
-    </Entity>
+    <>
+      {/* Flag pole */}
+      <Entity tags={['goalFlag']}>
+        <Transform x={x} y={y} />
+        <Sprite src="/SMB_Goal_Pole.png" width={16} height={160} color="#888" zIndex={4} />
+        <BoxCollider width={16} height={160} isTrigger />
+        <GoalActivator />
+      </Entity>
+
+      {/* Castle at end */}
+      <Entity>
+        <Transform x={x + 90} y={y - 16} />
+        <Sprite src="/SMBCastle.png" width={128} height={128} color="#555" zIndex={1} />
+      </Entity>
+    </>
   )
 }
