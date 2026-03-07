@@ -342,6 +342,96 @@ html, body, #root {
   overflow: hidden;
 }
 
+/* ── SIDEBAR / FILE TREE ──────────────────────────────── */
+
+.sidebar {
+  width: 190px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  height: 32px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sidebar-add-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: color 0.12s, background 0.12s;
+}
+
+.sidebar-add-btn:hover {
+  color: var(--text);
+  background: var(--border2);
+}
+
+.file-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.file-tree::-webkit-scrollbar { width: 4px; }
+.file-tree::-webkit-scrollbar-track { background: transparent; }
+.file-tree::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.file-tree-dir {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+  cursor: default;
+}
+
+.file-tree-file {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 24px;
+  font-size: 11px;
+  color: var(--text-dim);
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 0.1s, color 0.1s;
+  border-left: 2px solid transparent;
+}
+
+.file-tree-file:hover {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+
+.file-tree-file.active {
+  color: var(--text);
+  background: rgba(79,195,247,0.06);
+  border-left-color: var(--accent);
+}
+
 .editor-panel {
   flex: 1;
   min-width: 0;
@@ -371,7 +461,11 @@ html, body, #root {
   padding: 0 10px;
   height: 24px;
   border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.1s;
 }
+
+.editor-tab:hover { color: var(--text); }
 
 .editor-tab.active {
   background: rgba(79,195,247,0.08);

@@ -1,16 +1,39 @@
 import { transform } from 'sucrase'
 
-export interface CompileResult {
-  code: string
-  error: null
+export interface CompileResult { code: string; error: null }
+export interface CompileError  { code: null;   error: string }
+
+// Strip `import X from './Foo'` lines (local inter-file imports)
+function stripLocalImports(code: string): string {
+  return code
+    .split('\n')
+    .filter(line => !/^\s*import\s+.+\s+from\s+['"]\.\//.test(line))
+    .join('\n')
 }
 
-export interface CompileError {
-  code: null
-  error: string
+// Strip `export` keyword so everything lands in the same scope
+function stripExports(code: string): string {
+  return code
+    .replace(/^export default /gm, '')
+    .replace(/^export function /gm,  'function ')
+    .replace(/^export const /gm,     'const ')
+    .replace(/^export class /gm,     'class ')
+    .replace(/^export type /gm,      'type ')
+    .replace(/^export interface /gm, 'interface ')
+    .replace(/^export \{[^}]*\}[^\n]*/gm, '')
 }
 
-// Synchronous — no WASM, no async init, instant
+// Naive bundler: all files share one scope, entry (main.tsx) goes last
+export function bundle(files: { name: string; content: string }[]): string {
+  const entry  = files.find(f => f.name === 'main.tsx') ?? files[files.length - 1]
+  const others = files.filter(f => f !== entry)
+
+  const parts = others.map(f => stripLocalImports(stripExports(f.content)))
+  parts.push(stripLocalImports(entry.content))
+
+  return parts.join('\n\n')
+}
+
 export function compile(source: string): CompileResult | CompileError {
   try {
     const result = transform(source, {
@@ -21,19 +44,18 @@ export function compile(source: string): CompileResult | CompileError {
     })
     return { code: result.code, error: null }
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err)
-    return { code: null, error: message }
+    return { code: null, error: err instanceof Error ? err.message : String(err) }
   }
 }
 
 export function buildIframeSrcdoc(compiledCode: string): string {
   const importMap = JSON.stringify({
     imports: {
-      react: 'https://esm.sh/react@18',
-      'react-dom': 'https://esm.sh/react-dom@18',
-      'react-dom/client': 'https://esm.sh/react-dom@18/client',
+      'react':             'https://esm.sh/react@18',
+      'react-dom':         'https://esm.sh/react-dom@18',
+      'react-dom/client':  'https://esm.sh/react-dom@18/client',
       'react/jsx-runtime': 'https://esm.sh/react@18/jsx-runtime',
-      cubeforge: 'https://esm.sh/cubeforge@latest',
+      'cubeforge':         'https://esm.sh/cubeforge@latest',
     },
   })
 

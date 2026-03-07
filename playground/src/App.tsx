@@ -1,34 +1,95 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Editor, { type Monaco } from '@monaco-editor/react'
-import { compile, buildIframeSrcdoc } from './compiler'
-import { TEMPLATES } from './templates'
+import { compile, bundle, buildIframeSrcdoc } from './compiler'
+import { TEMPLATES, type VFile } from './templates'
 
-const DEBOUNCE_MS = 500
+// ── URL hash encode/decode (JSON of all files) ────────────────────────────────
 
-type Status = { kind: 'ok' } | { kind: 'building' } | { kind: 'error'; message: string }
-
-function encodeCode(code: string): string {
-  return btoa(unescape(encodeURIComponent(code)))
+function encodeFiles(files: VFile[]): string {
+  return btoa(unescape(encodeURIComponent(JSON.stringify(files))))
 }
 
-function decodeCode(hash: string): string | null {
+function decodeFiles(hash: string): VFile[] | null {
   try {
-    return decodeURIComponent(escape(atob(hash.replace(/^#/, ''))))
+    return JSON.parse(decodeURIComponent(escape(atob(hash.replace(/^#/, '')))))
   } catch {
     return null
   }
 }
 
-function getInitialCode(): { code: string; templateId: string } {
+function getInitialState(): { files: VFile[]; templateId: string } {
   const hash = window.location.hash
   if (hash && hash.length > 1) {
-    const decoded = decodeCode(hash)
-    if (decoded) return { code: decoded, templateId: '__custom__' }
+    const files = decodeFiles(hash)
+    if (files) return { files, templateId: '__custom__' }
   }
-  return { code: TEMPLATES[0].code, templateId: TEMPLATES[0].id }
+  return { files: TEMPLATES[0].files, templateId: TEMPLATES[0].id }
 }
 
-// ── Icons ────────────────────────────────────────────────────────────────────
+// ── File icon ─────────────────────────────────────────────────────────────────
+
+function FileIcon({ name }: { name: string }) {
+  const isTsx = name.endsWith('.tsx')
+  return (
+    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0 }}>
+      <rect x="1" y="1" width="8" height="11" rx="1" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+      <path d="M7 1v3h3" stroke="currentColor" strokeWidth="1" opacity="0.5" />
+      {isTsx && (
+        <text x="2" y="10" fontSize="4" fill="var(--accent)" fontFamily="monospace" fontWeight="bold">tsx</text>
+      )}
+      {!isTsx && (
+        <text x="2.5" y="10" fontSize="4" fill="var(--text-dim)" fontFamily="monospace" fontWeight="bold">ts</text>
+      )}
+    </svg>
+  )
+}
+
+// ── File tree sidebar ─────────────────────────────────────────────────────────
+
+function Sidebar({
+  files,
+  activeFile,
+  onSelect,
+  onAddFile,
+}: {
+  files: VFile[]
+  activeFile: string
+  onSelect: (name: string) => void
+  onAddFile: () => void
+}) {
+  return (
+    <div className="sidebar">
+      <div className="sidebar-header">
+        <span>EXPLORER</span>
+        <button className="sidebar-add-btn" onClick={onAddFile} title="New file">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M6 2v8M2 6h8" />
+          </svg>
+        </button>
+      </div>
+      <div className="file-tree">
+        <div className="file-tree-dir">
+          <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor" style={{ flexShrink: 0 }}>
+            <path d="M1 2l3 3 3-3" stroke="currentColor" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          </svg>
+          <span>src</span>
+        </div>
+        {files.map(f => (
+          <div
+            key={f.name}
+            className={`file-tree-file${f.name === activeFile ? ' active' : ''}`}
+            onClick={() => onSelect(f.name)}
+          >
+            <FileIcon name={f.name} />
+            <span>{f.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
 
 function IconPlay() {
   return (
@@ -37,7 +98,6 @@ function IconPlay() {
     </svg>
   )
 }
-
 function IconCopy() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -46,7 +106,6 @@ function IconCopy() {
     </svg>
   )
 }
-
 function IconReset() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -55,7 +114,6 @@ function IconReset() {
     </svg>
   )
 }
-
 function IconShare() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -64,7 +122,6 @@ function IconShare() {
     </svg>
   )
 }
-
 function IconGitHub() {
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
@@ -72,7 +129,6 @@ function IconGitHub() {
     </svg>
   )
 }
-
 function IconCheck() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -80,7 +136,6 @@ function IconCheck() {
     </svg>
   )
 }
-
 function IconChevron() {
   return (
     <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -89,43 +144,28 @@ function IconChevron() {
   )
 }
 
-// ── Template Picker ──────────────────────────────────────────────────────────
+// ── Template Picker ───────────────────────────────────────────────────────────
 
-function TemplatePicker({
-  templateId,
-  onChange,
-}: {
-  templateId: string
-  onChange: (id: string) => void
-}) {
+function TemplatePicker({ templateId, onChange }: { templateId: string; onChange: (id: string) => void }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-
   const current = TEMPLATES.find(t => t.id === templateId)
 
   useEffect(() => {
-    function handleClick(e: MouseEvent) {
+    function onMouseDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
-    document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
   }, [])
 
   return (
     <div className="template-picker" ref={ref}>
-      <button
-        className={`template-trigger${open ? ' open' : ''}`}
-        onClick={() => setOpen(o => !o)}
-      >
-        <span className="template-option-icon" style={{ width: 16, height: 16, fontSize: 10, borderRadius: 3, background: 'transparent' }}>
-          {current?.icon ?? '📄'}
-        </span>
+      <button className={`template-trigger${open ? ' open' : ''}`} onClick={() => setOpen(o => !o)}>
+        <span style={{ fontSize: 13 }}>{current?.icon ?? '📄'}</span>
         {current?.label ?? 'Custom'}
-        <span className="template-trigger-chevron">
-          <IconChevron />
-        </span>
+        <span className="template-trigger-chevron"><IconChevron /></span>
       </button>
-
       {open && (
         <div className="template-dropdown">
           {TEMPLATES.map(t => (
@@ -147,37 +187,44 @@ function TemplatePicker({
   )
 }
 
-// ── Status Badge ─────────────────────────────────────────────────────────────
+// ── Status Badge ──────────────────────────────────────────────────────────────
+
+type Status = { kind: 'idle' } | { kind: 'ok' } | { kind: 'building' } | { kind: 'error'; message: string }
 
 function StatusBadge({ status }: { status: Status }) {
   const label =
-    status.kind === 'ok' ? 'READY'
-    : status.kind === 'building' ? 'BUILDING'
-    : 'ERROR'
-
+    status.kind === 'ok'       ? 'READY'    :
+    status.kind === 'building' ? 'BUILDING' :
+    status.kind === 'error'    ? 'ERROR'    : 'IDLE'
+  const cls = status.kind === 'idle' ? 'building' : status.kind
   return (
-    <div className={`status-badge ${status.kind}`}>
+    <div className={`status-badge ${cls}`}>
       <span className="status-dot" />
       {label}
     </div>
   )
 }
 
-// ── Main App ─────────────────────────────────────────────────────────────────
+// ── Main App ──────────────────────────────────────────────────────────────────
 
 export function App() {
-  const initial = getInitialCode()
+  const initial = getInitialState()
   const [templateId, setTemplateId] = useState(initial.templateId)
-  const [code, setCode] = useState(initial.code)
-  const [srcdoc, setSrcdoc] = useState('')
-  const [status, setStatus] = useState<Status>({ kind: 'building' })
-  const [copied, setCopied] = useState(false)
-  const [shared, setShared] = useState(false)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [files, setFiles]           = useState<VFile[]>(initial.files)
+  const [activeFile, setActiveFile] = useState(initial.files[0].name)
+  const [srcdoc, setSrcdoc]         = useState('')
+  const [status, setStatus]         = useState<Status>({ kind: 'idle' })
+  const [copied, setCopied]         = useState(false)
+  const [shared, setShared]         = useState(false)
 
-  const run = useCallback((source: string) => {
+  // Keep a ref of latest files so callbacks can read current state
+  const filesRef = useRef(files)
+  useEffect(() => { filesRef.current = files }, [files])
+
+  const run = useCallback((allFiles: VFile[]) => {
     setStatus({ kind: 'building' })
     setTimeout(() => {
+      const source = bundle(allFiles)
       const result = compile(source)
       if (result.error !== null) {
         setStatus({ kind: 'error', message: result.error })
@@ -188,32 +235,26 @@ export function App() {
     }, 0)
   }, [])
 
-  useEffect(() => { run(initial.code) }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Cmd/Ctrl+Enter triggers run
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => run(code), DEBOUNCE_MS)
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
-  }, [code, run])
-
-  // Cmd+Enter to run immediately
-  useEffect(() => {
-    function handleKey(e: KeyboardEvent) {
+    function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault()
-        if (debounceRef.current) clearTimeout(debounceRef.current)
-        run(code)
+        run(filesRef.current)
       }
     }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [code, run])
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [run])
 
   function handleTemplateChange(id: string) {
     const tpl = TEMPLATES.find(t => t.id === id)
     if (!tpl) return
     setTemplateId(id)
-    setCode(tpl.code)
+    setFiles(tpl.files)
+    setActiveFile(tpl.files[0].name)
+    setSrcdoc('')
+    setStatus({ kind: 'idle' })
     window.location.hash = ''
   }
 
@@ -232,35 +273,49 @@ export function App() {
     })
   }
 
+  function handleCodeChange(value: string) {
+    setFiles(prev => prev.map(f => f.name === activeFile ? { ...f, content: value } : f))
+  }
+
+  function handleAddFile() {
+    const name = prompt('File name (e.g. Enemy.tsx):')
+    if (!name) return
+    const newFile: VFile = { name, content: `// ${name}\n` }
+    setFiles(prev => [...prev, newFile])
+    setActiveFile(name)
+  }
+
   function handleCopy() {
-    navigator.clipboard.writeText(code).then(() => {
+    const current = files.find(f => f.name === activeFile)
+    navigator.clipboard.writeText(current?.content ?? '').then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 1800)
     })
   }
 
-  function handleReset() {
-    const tpl = TEMPLATES.find(t => t.id === templateId) ?? TEMPLATES[0]
-    setCode(tpl.code)
-    window.location.hash = ''
-  }
-
   function handleShare() {
-    const encoded = encodeCode(code)
-    window.location.hash = encoded
+    window.location.hash = encodeFiles(files)
     navigator.clipboard.writeText(window.location.href).then(() => {
       setShared(true)
       setTimeout(() => setShared(false), 1800)
     })
   }
 
-  const currentTemplate = TEMPLATES.find(t => t.id === templateId)
+  function handleReset() {
+    const tpl = TEMPLATES.find(t => t.id === templateId) ?? TEMPLATES[0]
+    setFiles(tpl.files)
+    setActiveFile(tpl.files[0].name)
+    setSrcdoc('')
+    setStatus({ kind: 'idle' })
+    window.location.hash = ''
+  }
+
+  const currentFile = files.find(f => f.name === activeFile)
 
   return (
     <div className="playground">
       {/* ── Toolbar ── */}
       <div className="toolbar">
-        {/* Logo */}
         <div className="toolbar-logo">
           <div className="toolbar-logo-mark">
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -270,98 +325,82 @@ export function App() {
               <rect x="7" y="7" width="4" height="4" fill="#0b0d14" />
             </svg>
           </div>
-          <span className="toolbar-logo-text">
-            cube<span>forge</span>
-          </span>
+          <span className="toolbar-logo-text">cube<span>forge</span></span>
         </div>
 
         <div className="toolbar-divider" />
 
-        {/* Template picker */}
         <TemplatePicker templateId={templateId} onChange={handleTemplateChange} />
 
         <div className="toolbar-spacer" />
 
-        {/* Status */}
         <StatusBadge status={status} />
 
         <div className="toolbar-divider" />
 
-        {/* Icon buttons */}
-        <button
-          className={`icon-btn${copied ? ' copied' : ''}`}
-          onClick={handleCopy}
-          title="Copy code"
-        >
+        <button className={`icon-btn${copied ? ' copied' : ''}`} onClick={handleCopy}>
           {copied ? <IconCheck /> : <IconCopy />}
-          <span className="tooltip">Copy code</span>
+          <span className="tooltip">Copy active file</span>
         </button>
 
-        <button
-          className={`icon-btn${shared ? ' copied' : ''}`}
-          onClick={handleShare}
-          title="Share"
-        >
+        <button className={`icon-btn${shared ? ' copied' : ''}`} onClick={handleShare}>
           {shared ? <IconCheck /> : <IconShare />}
           <span className="tooltip">Copy share link</span>
         </button>
 
-        <button
-          className="icon-btn danger"
-          onClick={handleReset}
-          title="Reset to default"
-        >
+        <button className="icon-btn danger" onClick={handleReset}>
           <IconReset />
-          <span className="tooltip">Reset</span>
+          <span className="tooltip">Reset template</span>
         </button>
 
         <div className="toolbar-divider" />
 
-        {/* GitHub */}
-        <a
-          className="github-link"
-          href="https://github.com/1homsi/cubeforge"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="GitHub"
-        >
+        <a className="github-link" href="https://github.com/1homsi/cubeforge" target="_blank" rel="noopener noreferrer">
           <IconGitHub />
           <span className="tooltip">GitHub</span>
         </a>
 
         <div className="toolbar-divider" />
 
-        {/* Run button */}
-        <button
-          className="run-btn"
-          onClick={() => {
-            if (debounceRef.current) clearTimeout(debounceRef.current)
-            run(code)
-          }}
-        >
+        <button className="run-btn" onClick={() => run(filesRef.current)}>
           <IconPlay />
           RUN
           <span className="run-btn-hint">⌘↵</span>
         </button>
       </div>
 
-      {/* ── Panels ── */}
+      {/* ── Main area ── */}
       <div className="panels">
-        {/* Editor panel */}
+        {/* File tree */}
+        <Sidebar
+          files={files}
+          activeFile={activeFile}
+          onSelect={setActiveFile}
+          onAddFile={handleAddFile}
+        />
+
+        {/* Editor */}
         <div className="editor-panel">
           <div className="editor-tab-bar">
-            <div className="editor-tab active">
-              <span className="editor-tab-dot" />
-              {currentTemplate?.label ?? 'custom'}.tsx
-            </div>
+            {files.map(f => (
+              <div
+                key={f.name}
+                className={`editor-tab${f.name === activeFile ? ' active' : ''}`}
+                onClick={() => setActiveFile(f.name)}
+              >
+                {f.name === activeFile && <span className="editor-tab-dot" />}
+                {f.name}
+              </div>
+            ))}
           </div>
           <div className="editor-body">
             <Editor
+              key={activeFile}
               height="100%"
               defaultLanguage="typescript"
               theme="vs-dark"
-              value={code}
-              onChange={v => setCode(v ?? '')}
+              value={currentFile?.content ?? ''}
+              onChange={v => handleCodeChange(v ?? '')}
               onMount={handleEditorMount}
               options={{
                 fontSize: 13,
@@ -380,7 +419,7 @@ export function App() {
           </div>
         </div>
 
-        {/* Preview panel */}
+        {/* Preview */}
         <div className="preview-panel">
           <div className="preview-tab-bar">
             <span>PREVIEW</span>
@@ -392,14 +431,14 @@ export function App() {
                 srcDoc={srcdoc}
                 sandbox="allow-scripts allow-pointer-lock"
                 title="game preview"
-                style={{ width: '100%', height: '100%', border: 'none', display: 'block', overflow: 'hidden' }}
               />
             ) : (
               <div className="preview-empty">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.4">
-                  <polygon points="5 3 19 12 5 21 5 3" />
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" opacity="0.3">
+                  <polygon points="6 3.5 22 14 6 24.5 6 3.5" />
                 </svg>
                 <span>Press Run to start</span>
+                <span style={{ fontSize: 10, opacity: 0.5 }}>⌘↵ or click RUN</span>
               </div>
             )}
             {status.kind === 'error' && (
