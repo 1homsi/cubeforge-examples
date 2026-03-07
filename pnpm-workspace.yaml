@@ -1,0 +1,12 @@
+packages:
+  - 'platformer'
+  - 'mario-clone'
+  - 'breakout'
+  - 'flappy-bird'
+  - 'shooter'
+  - 'top-down'
+  - 'playground'
+  - 'pong'
+  - 'snake'
+  - 'endless-runner'
+  - 'asteroids'
