@@ -1,42 +1,19 @@
-import { Entity, Transform, Sprite, BoxCollider, Script } from '@cubeforge/react'
+import { useRef } from 'react'
+import { Entity, Transform, Sprite, BoxCollider, Script, useTriggerEnter, useEntity } from '@cubeforge/react'
 import type { EntityId, ECSWorld, TransformComponent } from '@cubeforge/react'
-import type { Component } from '@cubeforge/core'
 
-interface CoinMeta extends Component {
-  readonly type: 'CoinMeta'
-  onCollect: (id: EntityId) => void
-  baseY:  number
-  timer:  number
-}
+/** Collects the coin when a player-tagged entity enters its trigger. */
+function CoinCollector({ onCollect }: { onCollect?: (id: EntityId) => void }) {
+  const entityId = useEntity()
+  const collected = useRef(false)
 
-function coinUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number) {
-  if (!world.hasEntity(id)) return
+  useTriggerEnter(() => {
+    if (collected.current) return
+    collected.current = true
+    onCollect?.(entityId)
+  }, { tag: 'player' })
 
-  const meta = world.getComponent<CoinMeta>(id, 'CoinMeta')
-  if (!meta) return
-
-  // Bob up and down
-  meta.timer += dt
-  const transform = world.getComponent<TransformComponent>(id, 'Transform')
-  if (transform) transform.y = meta.baseY + Math.sin(meta.timer * 3) * 6
-
-  // Proximity collect
-  for (const pid of world.query('Tag')) {
-    const tag = world.getComponent<{ type: 'Tag'; tags: string[] }>(pid, 'Tag')
-    if (!tag?.tags.includes('player')) continue
-
-    const pt = world.getComponent<TransformComponent>(pid, 'Transform')
-    const ct = transform
-    if (!pt || !ct) continue
-
-    const dx = pt.x - ct.x
-    const dy = pt.y - ct.y
-    if (dx * dx + dy * dy < 900) {
-      meta.onCollect(id)
-      world.destroyEntity(id)
-      return
-    }
-  }
+  return null
 }
 
 interface CoinProps {
@@ -46,22 +23,21 @@ interface CoinProps {
 }
 
 export function Coin({ x, y, onCollect }: CoinProps) {
+  const timer = useRef(Math.random() * Math.PI * 2)
+
   return (
     <Entity tags={['coin']}>
       <Transform x={x} y={y} />
       <Sprite width={16} height={16} color="#ffd700" zIndex={5} />
       <BoxCollider width={16} height={16} isTrigger />
       <Script
-        init={(id, world) => {
-          world.addComponent(id, {
-            type:      'CoinMeta',
-            onCollect: onCollect ?? (() => {}),
-            baseY:     y,
-            timer:     Math.random() * Math.PI * 2,
-          } as CoinMeta)
+        update={(_id: EntityId, world: ECSWorld, _input: unknown, dt: number) => {
+          timer.current += dt
+          const t = world.getComponent<TransformComponent>(_id, 'Transform')
+          if (t) t.y = y + Math.sin(timer.current * 3) * 6
         }}
-        update={coinUpdate}
       />
+      <CoinCollector onCollect={onCollect} />
     </Entity>
   )
 }
