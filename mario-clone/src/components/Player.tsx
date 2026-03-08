@@ -262,7 +262,6 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
       state.invincibleTimer = INVINCIBLE_DUR
       state.flashTimer      = 0.1
       const pushDir = transform.x >= et.x ? 1 : -1
-      transform.x  += pushDir * 32
       rb.vx         = pushDir * KNOCKBACK_X
       rb.vy         = KNOCKBACK_Y
       gameEvents.onPlayerHurt?.()
