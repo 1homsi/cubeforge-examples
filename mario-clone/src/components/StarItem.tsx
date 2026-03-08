@@ -1,20 +1,25 @@
 import { useRef } from 'react'
-import { Entity, Transform, Sprite, BoxCollider, Script, useTriggerEnter, useDestroyEntity } from '@cubeforge/react'
+import { Entity, Transform, Sprite, BoxCollider, Script, findByTag } from '@cubeforge/react'
 import type { EntityId, ECSWorld, TransformComponent } from '@cubeforge/react'
 import { gameEvents } from '../gameEvents'
 
-function StarPickup() {
-  const destroy = useDestroyEntity()
-  const collected = useRef(false)
+let collected = new Set<EntityId>()
 
-  useTriggerEnter(() => {
-    if (collected.current) return
-    collected.current = true
-    gameEvents.onStar?.()
-    destroy()
-  }, { tag: 'player' })
-
-  return null
+function starPickupCheck(id: EntityId, world: ECSWorld) {
+  if (!world.hasEntity(id)) return
+  if (collected.has(id)) return
+  const st = world.getComponent<TransformComponent>(id, 'Transform')
+  if (!st) return
+  for (const pid of findByTag(world, 'player')) {
+    const pt = world.getComponent<TransformComponent>(pid, 'Transform')
+    if (!pt) continue
+    if (Math.abs(st.x - pt.x) < 24 && Math.abs(st.y - pt.y) < 24) {
+      collected.add(id)
+      gameEvents.onStar?.()
+      world.destroyEntity(id)
+      return
+    }
+  }
 }
 
 export function StarItem({ x, y }: { x: number; y: number }) {
@@ -24,15 +29,15 @@ export function StarItem({ x, y }: { x: number; y: number }) {
     <Entity tags={['star']}>
       <Transform x={x} y={y} />
       <Sprite src="/Starman.gif" width={28} height={28} color="#ffd600" zIndex={5} />
-      <BoxCollider width={24} height={24} isTrigger />
+      <BoxCollider width={24} height={24} />
       <Script
-        update={(_id: EntityId, world: ECSWorld, _i: unknown, dt: number) => {
+        update={(id: EntityId, world: ECSWorld, _i: unknown, dt: number) => {
           timer.current += dt
-          const t = world.getComponent<TransformComponent>(_id, 'Transform')
+          const t = world.getComponent<TransformComponent>(id, 'Transform')
           if (t) t.y = y + Math.sin(timer.current * 4) * 8
+          starPickupCheck(id, world)
         }}
       />
-      <StarPickup />
     </Entity>
   )
 }
