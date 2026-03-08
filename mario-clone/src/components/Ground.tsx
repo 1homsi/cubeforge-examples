@@ -18,7 +18,7 @@ export function Ground({ x, y, width, height = 28, color = '#5a3e1b', src, zInde
       <Transform x={x} y={y} />
       <Sprite width={width} height={height} color={color} src={src} zIndex={zIndex} tileX={tileX} tileY={tileY} />
       <RigidBody isStatic />
-      <BoxCollider width={width} height={height} />
+      <BoxCollider width={width} height={height} layer="world" />
     </Entity>
   )
 }

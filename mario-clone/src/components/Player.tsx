@@ -262,6 +262,7 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
       state.invincibleTimer = INVINCIBLE_DUR
       state.flashTimer      = 0.1
       const pushDir = transform.x >= et.x ? 1 : -1
+      transform.x  += pushDir * 32
       rb.vx         = pushDir * KNOCKBACK_X
       rb.vy         = KNOCKBACK_Y
       gameEvents.onPlayerHurt?.()
@@ -295,7 +296,7 @@ export function Player({ x = 80, y = 420 }: { x?: number; y?: number }) {
         zIndex={10}
       />
       <RigidBody friction={0.7} />
-      <BoxCollider width={26} height={SMALL_H} />
+      <BoxCollider width={26} height={SMALL_H} mask="world" />
       <Script init={(id) => playerInit(id)} update={playerUpdate} />
     </Entity>
   )

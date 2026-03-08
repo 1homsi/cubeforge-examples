@@ -13,7 +13,7 @@ export function WarpPipe({ x, y, height = 64, src = '/Warp_Pipe_SMB.png' }: Warp
       <Transform x={x} y={y} />
       <Sprite src={src} width={48} height={height} color="#2e7d32" zIndex={1} />
       <RigidBody isStatic />
-      <BoxCollider width={48} height={height} />
+      <BoxCollider width={48} height={height} layer="world" />
     </Entity>
   )
 }

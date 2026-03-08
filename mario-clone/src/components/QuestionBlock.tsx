@@ -73,7 +73,7 @@ export function QuestionBlock({ x, y, onReveal, src = '/SMB_Qblock.png' }: Quest
       <Transform x={x} y={y} />
       <Sprite src={src} width={32} height={32} color="#f5a623" zIndex={3} />
       <RigidBody isStatic />
-      <BoxCollider width={32} height={32} />
+      <BoxCollider width={32} height={32} layer="world" />
       <Script
         init={(id, world) => {
           blockStates.set(id, { hit: false, bounceTimer: 0, spawnY: y })

@@ -54,7 +54,7 @@ export function KoopaParatroopa({
       <Transform x={x} y={y} />
       <Sprite src={src} width={30} height={42} color="#388e3c" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={26} height={40} />
+      <BoxCollider width={26} height={40} mask="world" />
       <Script
         init={(id) => paraTroopaStates.set(id, { direction: 1, leftBound: left, rightBound: right, hopTimer: 0.8 })}
         update={(id: EntityId, world: ECSWorld, input: unknown, dt: number) => paraTroopaUpdate(id, world, input, dt)}

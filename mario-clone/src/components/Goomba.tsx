@@ -46,7 +46,7 @@ export function Goomba({ x = 400, y = 465, patrolLeft, patrolRight, src = '/Goom
       <Transform x={x} y={y} />
       <Sprite src={src} width={32} height={32} color="#8b4513" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={30} height={30} />
+      <BoxCollider width={30} height={30} mask="world" />
       <Script
         init={(id) => goombaInit(id, left, right)}
         update={(id: EntityId, world: ECSWorld) => goombaUpdate(id, world)}

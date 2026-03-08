@@ -81,7 +81,7 @@ export function BillBlaster({ x, y, dir = 1, fireInterval = 4.0 }: BillBlasterPr
       <Transform x={x} y={y} />
       <Sprite src="/Bill_Blaster_Sprite_SMB.png" width={32} height={48} color="#37474f" zIndex={8} />
       <RigidBody isStatic />
-      <BoxCollider width={32} height={48} />
+      <BoxCollider width={32} height={48} layer="world" />
       <Script
         init={(id) => blasterStates.set(id, { fireTimer: fireInterval * 0.5, fireInterval, dir })}
         update={blasterUpdate}

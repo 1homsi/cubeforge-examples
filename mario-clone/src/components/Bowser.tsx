@@ -100,7 +100,7 @@ export function Bowser({ x, y, patrolLeft, patrolRight }: BowserProps) {
       <Transform x={x} y={y} />
       <Sprite src="/SMB_Bowser_Sprite.png" width={68} height={68} color="#ff6f00" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={60} height={64} />
+      <BoxCollider width={60} height={64} mask="world" />
       <Script
         init={(id, world) => {
           bowserStates.set(id, { direction: -1, leftBound: left, rightBound: right, fireTimer: 2.0 })

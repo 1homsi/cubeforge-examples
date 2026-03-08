@@ -102,7 +102,7 @@ export function HammerBro({ x = 400, y = 460, patrolLeft, patrolRight }: HammerB
       <Transform x={x} y={y} />
       <Sprite src="/SMB_Hammer_Bro_Sprite.png" width={32} height={40} color="#1565c0" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={28} height={40} />
+      <BoxCollider width={28} height={40} mask="world" />
       <Script
         init={(id) => broInit(id, left, right)}
         update={(id: EntityId, world: ECSWorld, input: unknown, dt: number) => broUpdate(id, world, input, dt)}

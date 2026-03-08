@@ -49,7 +49,7 @@ export function BrickBlock({ x, y }: BrickBlockProps) {
       <Transform x={x} y={y} />
       <Sprite src="/SMB_Brick_Block_Sprite.png" width={32} height={32} color="#b5651d" zIndex={3} />
       <RigidBody isStatic />
-      <BoxCollider width={32} height={32} />
+      <BoxCollider width={32} height={32} layer="world" />
       <Script
         init={(id) => brickStates.set(id, { bounceTimer: 0, spawnY: y })}
         update={brickUpdate}
