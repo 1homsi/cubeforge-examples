@@ -1,6 +1,11 @@
 import type { GameState } from '../levelGen'
 import { LEVEL_NAME } from '../levelGen'
 
+const BASE = (import.meta.env.BASE_URL ?? '/').replace(/\/$/, '')
+function resolve(src: string): string {
+  return BASE && src.startsWith('/') ? BASE + src : src
+}
+
 const overlayStyle: React.CSSProperties = {
   position: 'absolute', inset: 0,
   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -46,7 +51,7 @@ export function GameOverlays({ gameState, score, level, onNextLevel, onRestart }
         {[{ top: '10%', left: '8%' }, { top: '15%', right: '10%' }, { top: '60%', left: '5%' },
           { top: '55%', right: '8%' }, { bottom: '20%', left: '12%' }, { bottom: '15%', right: '12%' },
         ].map((pos, i) => (
-          <img key={i} src="/SMB_Sprite_Firework.gif" width={40} height={40} style={{ position: 'absolute', ...pos, opacity: 0.9 }} />
+          <img key={i} src={resolve('/SMB_Sprite_Firework.gif')} width={40} height={40} style={{ position: 'absolute', ...pos, opacity: 0.9 }} />
         ))}
         <div style={cardStyle}>
           <p style={{ fontSize: 11, letterSpacing: 4, color: '#ffd700', marginBottom: 8 }}>BOWSER DEFEATED</p>
