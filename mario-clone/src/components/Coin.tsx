@@ -1,8 +1,6 @@
 import { useRef } from 'react'
 import { Entity, Transform, Sprite, Script, findByTag } from '@cubeforge/react'
-import type { EntityId, ECSWorld, TransformComponent } from '@cubeforge/react'
-
-let collected = new Set<EntityId>()
+import type { EntityId, ECSWorld, TransformComponent, SpriteComponent } from '@cubeforge/react'
 
 interface CoinProps {
   x: number
@@ -23,20 +21,19 @@ export function Coin({ x, y, src = '/SMB_Sprite_Coin.png', onCollect }: CoinProp
       <Script
         update={(id: EntityId, world: ECSWorld, _input: unknown, dt: number) => {
           if (!world.hasEntity(id)) return
+          const sprite = world.getComponent<SpriteComponent>(id, 'Sprite')
+          if (!sprite?.visible) return // already collected
+
           timer.current += dt
           const t = world.getComponent<TransformComponent>(id, 'Transform')
-          if (t) t.y = y + Math.sin(timer.current * 3) * 10
-
-          if (collected.has(id)) return
           if (!t) return
+          t.y = y + Math.sin(timer.current * 3) * 10
+
           for (const pid of findByTag(world, 'player')) {
             const pt = world.getComponent<TransformComponent>(pid, 'Transform')
             if (!pt) continue
             if (Math.abs(t.x - pt.x) < 32 && Math.abs(t.y - pt.y) < 32) {
-              collected.add(id)
-              // Hide instead of destroy — let React unmount handle cleanup
-              const sprite = world.getComponent<{ type: 'Sprite'; visible: boolean }>(id, 'Sprite')
-              if (sprite) sprite.visible = false
+              sprite.visible = false
               onCollectRef.current?.()
               return
             }
