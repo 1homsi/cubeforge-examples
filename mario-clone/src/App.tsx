@@ -125,7 +125,7 @@ export function App() {
   function startLevel(lv: 1|2|3) {
     playerConfig.maxJumps = 1; playerConfig.isBig = false; playerConfig.canFire = false
     playerConfig.isStarActive = false; playerConfig.starTimer = 0
-    playerConfig.spawnX = 80; playerConfig.spawnY = FLOOR_TOP - 60
+    playerConfig.spawnX = 80; playerConfig.spawnY = FLOOR_TOP - 48
     setLevel(lv); setCollectedCoins(new Set()); setRevealedBlocks(new Set())
     setSpawnedReveals([]); setHasMushroom(false); setHasFireFlower(false); setHasStar(false)
     setGameState('playing'); setGameKey(k => k + 1)
@@ -153,7 +153,7 @@ export function App() {
               followOffsetY={-150}
               bounds={{ x: 0, y: -H, width: worldW, height: FLOOR_Y + Math.floor(FLOOR_H / 2) + H }}
             />
-            <Player x={80} y={FLOOR_TOP - 60} />
+            <Player x={80} y={FLOOR_TOP - 48} />
 
             {/* Boundary walls */}
             <Ground key="wall-l" x={-10}        y={300} width={20} height={800} color={bg} />

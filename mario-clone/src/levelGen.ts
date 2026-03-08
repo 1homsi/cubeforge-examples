@@ -1,10 +1,14 @@
 // ─── Constants ────────────────────────────────────────────────────────────────
-export const TILE      = 32
-export const FLOOR_H   = 64
-export const FLOOR_TOP = 492               // top edge of floor — where player/enemies stand
-export const FLOOR_Y   = FLOOR_TOP + Math.floor(FLOOR_H / 2)  // 524, center of floor strip
-export const BLOCK_Y   = 385   // center of standard floating block row
-export const BLOCK_Y2  = BLOCK_Y - TILE  // upper tier
+export const GRID      = 16                 // snap grid — all positions align to this
+export const TILE      = 32                 // visual tile size (2x grid)
+export const FLOOR_H   = 64                 // 4 grid cells tall
+export const FLOOR_TOP = 496                // top edge of floor (snapped: 560 - 64)
+export const FLOOR_Y   = FLOOR_TOP + FLOOR_H / 2  // 528, center of floor strip
+export const BLOCK_Y   = 384                // center of standard floating block row (snapped)
+export const BLOCK_Y2  = BLOCK_Y - TILE     // 352, upper tier (snapped)
+
+/** Snap a value to the nearest grid cell */
+function snap(v: number): number { return Math.round(v / GRID) * GRID }
 
 export const LEVEL_NAME:  Record<1|2|3, string> = { 1: 'WORLD 1-1', 2: 'WORLD 1-2', 3: 'WORLD 1-3' }
 export const LEVEL_THEME: Record<1|2|3, string> = { 1: 'OVERWORLD', 2: 'UNDERGROUND', 3: 'CASTLE' }
@@ -76,13 +80,13 @@ function buildBlocks(
 
 export function genLevel1(seed: number): LevelData {
   const rng     = makeRng(seed)
-  const WORLD_W = 3200 + ri(rng, 0, 600)
-  const STAIR_X = WORLD_W - 480
-  const GOAL_X  = WORLD_W - 180
+  const WORLD_W = snap(3200 + ri(rng, 0, 600))
+  const STAIR_X = snap(WORLD_W - 480)
+  const GOAL_X  = snap(WORLD_W - 176)
 
   // Pit
-  const pitX = 1100 + ri(rng, 0, 500)
-  const pitW = 128 + ri(rng, 0, 96)
+  const pitX = snap(1104 + ri(rng, 0, 496))
+  const pitW = snap(128 + ri(rng, 0, 96))
   const floorSegs = [
     { x: 0,           w: pitX },
     { x: pitX + pitW, w: WORLD_W - (pitX + pitW) },
@@ -91,12 +95,12 @@ export function genLevel1(seed: number): LevelData {
   // Pipes
   const pipes: PipeDef[] = []
   const piranhaXs: number[] = []
-  const pipeXCandidates = [460, pitX - 220, pitX + pitW + 320]
+  const pipeXCandidates = [snap(464), snap(pitX - 224), snap(pitX + pitW + 320)]
   for (const px of pipeXCandidates) {
     if (px < 80 || px > WORLD_W - 100) continue
     if (px > pitX - 80 && px < pitX + pitW + 80) continue
     const h = rc(rng, [64, 80, 96] as const)
-    pipes.push({ x: px, y: FLOOR_Y - h / 2, h, pipeTopY: FLOOR_Y - h })
+    pipes.push({ x: px, y: FLOOR_TOP - h / 2, h, pipeTopY: FLOOR_TOP - h })
     if (rng() > 0.45) piranhaXs.push(px)
   }
 
@@ -104,30 +108,30 @@ export function genLevel1(seed: number): LevelData {
   const brickBlocks: Array<{x:number;y:number}> = []
   const qBlocks: QBlock[] = []
   const qIdRef = { v: 1 }; const revIdxRef = { v: 0 }
-  const clusterXs = [280, 580, 880, 1500, 1850, 2200, 2550, 2900]
+  const clusterXs = [288, 576, 880, 1504, 1856, 2208, 2560, 2896].map(snap)
   buildBlocks(rng, clusterXs, STAIR_X, pitX, pitW, qBlocks, brickBlocks, qIdRef, revIdxRef)
 
   // Coins
   const coins: CoinDef[] = []
   let cId = 1
-  for (let x = 200; x < STAIR_X - 80; x += ri(rng, 200, 320)) {
+  for (let x = 208; x < STAIR_X - 80; x += snap(ri(rng, 208, 320))) {
     if (pipes.some(p => Math.abs(p.x - x) < 50)) continue
     if (x > pitX - 30 && x < pitX + pitW + 30) continue
-    coins.push({ id: cId++, x, y: BLOCK_Y - 48 })
+    coins.push({ id: cId++, x: snap(x), y: BLOCK_Y - 48 })
   }
 
   // Enemies
   const enemies: EnemyDef[] = []
-  for (let x = 280; x < STAIR_X - 200; x += ri(rng, 280, 460)) {
+  for (let x = 288; x < STAIR_X - 208; x += snap(ri(rng, 288, 464))) {
     if (pipes.some(p => Math.abs(p.x - x) < 90)) continue
     if (x > pitX - 100 && x < pitX + pitW + 100) continue
     const type   = rc(rng, ['goomba', 'goomba', 'goomba', 'koopa', 'paratroopa'] as const)
-    const spread = ri(rng, 80, 160)
-    const ey     = type === 'koopa' || type === 'paratroopa' ? FLOOR_Y - 22 : FLOOR_Y - 16
-    enemies.push({ type, x, y: ey, left: x - spread, right: x + spread })
+    const spread = snap(ri(rng, 80, 160))
+    const ey     = type === 'koopa' || type === 'paratroopa' ? FLOOR_TOP - 22 : FLOOR_TOP - 16
+    enemies.push({ type, x: snap(x), y: ey, left: snap(x - spread), right: snap(x + spread) })
   }
-  enemies.push({ type: 'billblaster', x: STAIR_X - 300, y: FLOOR_Y - 48, left: 0, right: 0, dir: 1, interval: 3.5 })
-  enemies.push({ type: 'billblaster', x: STAIR_X - 80,  y: FLOOR_Y - 48, left: 0, right: 0, dir: 1, interval: 4.8 })
+  enemies.push({ type: 'billblaster', x: snap(STAIR_X - 304), y: FLOOR_TOP - 48, left: 0, right: 0, dir: 1, interval: 3.5 })
+  enemies.push({ type: 'billblaster', x: snap(STAIR_X - 80),  y: FLOOR_TOP - 48, left: 0, right: 0, dir: 1, interval: 4.8 })
 
   // Clouds (overworld only)
   const CLOUD_SRCS = [
@@ -153,18 +157,18 @@ export function genLevel1(seed: number): LevelData {
 
 export function genLevel2(seed: number): LevelData {
   const rng     = makeRng(seed + 99991)
-  const WORLD_W = 3800
-  const STAIR_X = WORLD_W - 480
-  const GOAL_X  = WORLD_W - 180
+  const WORLD_W = 3808
+  const STAIR_X = snap(WORLD_W - 480)
+  const GOAL_X  = snap(WORLD_W - 176)
   const floorSegs = [{ x: 0, w: WORLD_W }]
 
   // Pipes
   const pipes: PipeDef[] = []
   const piranhaXs: number[] = []
-  for (let x = 600; x < STAIR_X - 200; x += ri(rng, 750, 1050)) {
+  for (let x = 608; x < STAIR_X - 208; x += snap(ri(rng, 752, 1056))) {
     const h = 64
-    pipes.push({ x, y: FLOOR_Y - h / 2, h, pipeTopY: FLOOR_Y - h })
-    if (rng() > 0.4) piranhaXs.push(x)
+    pipes.push({ x: snap(x), y: FLOOR_TOP - h / 2, h, pipeTopY: FLOOR_TOP - h })
+    if (rng() > 0.4) piranhaXs.push(snap(x))
   }
 
   // Floating brick rows
@@ -188,25 +192,25 @@ export function genLevel2(seed: number): LevelData {
 
   // Enemies
   const enemies: EnemyDef[] = []
-  for (let x = 300; x < STAIR_X - 200; x += ri(rng, 300, 500)) {
+  for (let x = 304; x < STAIR_X - 208; x += snap(ri(rng, 304, 496))) {
     if (pipes.some(p => Math.abs(p.x - x) < 90)) continue
     const type   = rc(rng, ['goomba', 'goomba', 'buzzy', 'koopa'] as const)
-    const spread = ri(rng, 80, 160)
-    const ey     = type === 'koopa' ? FLOOR_Y - 22 : FLOOR_Y - 16
+    const spread = snap(ri(rng, 80, 160))
+    const ey     = type === 'koopa' ? FLOOR_TOP - 22 : FLOOR_TOP - 16
     const src    = type === 'goomba' ? '/GoombaSMBGrey.gif'
                  : type === 'koopa'  ? '/SMB_NES_Blue_Koopa_Troopa_Walking.gif'
                  : '/BuzzyBeetleSMBUnderground.gif'
-    enemies.push({ type, x, y: ey, left: x - spread, right: x + spread, src })
+    enemies.push({ type, x: snap(x), y: ey, left: snap(x - spread), right: snap(x + spread), src })
   }
-  for (let x = 2000; x < STAIR_X - 100; x += ri(rng, 400, 600)) {
-    enemies.push({ type: 'billblaster', x, y: FLOOR_Y - 48, left: 0, right: 0, dir: rng() > 0.5 ? 1 : -1, interval: 3 + rng() * 2 })
+  for (let x = 2000; x < STAIR_X - 100; x += snap(ri(rng, 400, 608))) {
+    enemies.push({ type: 'billblaster', x: snap(x), y: FLOOR_TOP - 48, left: 0, right: 0, dir: rng() > 0.5 ? 1 : -1, interval: 3 + rng() * 2 })
   }
 
   // Coins
   const coins: CoinDef[] = []
   let cId = 1
-  for (let x = 200; x < STAIR_X; x += ri(rng, 200, 350)) {
-    coins.push({ id: cId++, x, y: BLOCK_Y - 48 })
+  for (let x = 208; x < STAIR_X; x += snap(ri(rng, 208, 352))) {
+    coins.push({ id: cId++, x: snap(x), y: BLOCK_Y - 48 })
   }
 
   return {
@@ -220,18 +224,18 @@ export function genLevel2(seed: number): LevelData {
 
 export function genLevel3(seed: number): LevelData {
   const rng     = makeRng(seed + 77777)
-  const WORLD_W = 3000
-  const STAIR_X = WORLD_W - 450
-  const GOAL_X  = WORLD_W - 180
+  const WORLD_W = 3008
+  const STAIR_X = snap(WORLD_W - 448)
+  const GOAL_X  = snap(WORLD_W - 176)
   const floorSegs = [{ x: 0, w: WORLD_W }]
 
   // Pipes (gray)
   const pipes: PipeDef[] = []
   const piranhaXs: number[] = []
-  for (let x = 500; x < STAIR_X - 200; x += ri(rng, 750, 1000)) {
+  for (let x = 496; x < STAIR_X - 208; x += snap(ri(rng, 752, 1008))) {
     const h = 64
-    pipes.push({ x, y: FLOOR_Y - h / 2, h, pipeTopY: FLOOR_Y - h, src: '/Warp_Pipe_Gray_SMB.png' })
-    if (rng() > 0.4) piranhaXs.push(x)
+    pipes.push({ x: snap(x), y: FLOOR_TOP - h / 2, h, pipeTopY: FLOOR_TOP - h, src: '/Warp_Pipe_Gray_SMB.png' })
+    if (rng() > 0.4) piranhaXs.push(snap(x))
   }
 
   // Hard block platforms
@@ -255,34 +259,34 @@ export function genLevel3(seed: number): LevelData {
 
   // Enemies
   const enemies: EnemyDef[] = []
-  for (let x = 280; x < STAIR_X - 300; x += ri(rng, 250, 420)) {
+  for (let x = 288; x < STAIR_X - 304; x += snap(ri(rng, 256, 416))) {
     if (pipes.some(p => Math.abs(p.x - x) < 90)) continue
     const type   = rc(rng, ['goomba', 'koopa', 'buzzy', 'hammerbro'] as const)
-    const spread = ri(rng, 80, 160)
-    const ey     = type === 'koopa' || type === 'hammerbro' ? FLOOR_Y - 22 : FLOOR_Y - 16
+    const spread = snap(ri(rng, 80, 160))
+    const ey     = type === 'koopa' || type === 'hammerbro' ? FLOOR_TOP - 22 : FLOOR_TOP - 16
     const src    = type === 'goomba' ? '/SMBBlueGoomba.gif'
                  : type === 'buzzy'  ? '/SMB_Buzzy_Beetle_Castle_Sprite.gif'
                  : undefined
-    enemies.push({ type, x, y: ey, left: x - spread, right: x + spread, src })
+    enemies.push({ type, x: snap(x), y: ey, left: snap(x - spread), right: snap(x + spread), src })
   }
-  for (let x = 500; x < STAIR_X - 300; x += ri(rng, 400, 600)) {
-    enemies.push({ type: 'podoboo', x, y: FLOOR_Y - 10, left: 0, right: 0 })
+  for (let x = 496; x < STAIR_X - 304; x += snap(ri(rng, 400, 608))) {
+    enemies.push({ type: 'podoboo', x: snap(x), y: FLOOR_TOP - 16, left: 0, right: 0 })
   }
-  enemies.push({ type: 'billblaster', x: STAIR_X - 500, y: FLOOR_Y - 48, left: 0, right: 0, dir:  1, interval: 3.0 })
-  enemies.push({ type: 'billblaster', x: STAIR_X - 280, y: FLOOR_Y - 48, left: 0, right: 0, dir: -1, interval: 3.8 })
-  enemies.push({ type: 'bowser', x: WORLD_W - 320, y: FLOOR_Y - 40, left: WORLD_W - 420, right: WORLD_W - 240 })
+  enemies.push({ type: 'billblaster', x: snap(STAIR_X - 496), y: FLOOR_TOP - 48, left: 0, right: 0, dir:  1, interval: 3.0 })
+  enemies.push({ type: 'billblaster', x: snap(STAIR_X - 288), y: FLOOR_TOP - 48, left: 0, right: 0, dir: -1, interval: 3.8 })
+  enemies.push({ type: 'bowser', x: snap(WORLD_W - 320), y: FLOOR_TOP - 40, left: snap(WORLD_W - 416), right: snap(WORLD_W - 240) })
 
   // Coins
   const coins: CoinDef[] = []
   let cId = 1
-  for (let x = 200; x < STAIR_X; x += ri(rng, 200, 320)) {
-    coins.push({ id: cId++, x, y: BLOCK_Y - 40 })
+  for (let x = 208; x < STAIR_X; x += snap(ri(rng, 208, 320))) {
+    coins.push({ id: cId++, x: snap(x), y: BLOCK_Y - 48 })
   }
 
   // Castle fortress decorations
   const decorations: LevelData['decorations'] = []
-  for (let x = 400; x < WORLD_W - 300; x += ri(rng, 500, 700)) {
-    decorations.push({ x, y: 350, src: '/LargeFortressSMB.png', w: 96, h: 120 })
+  for (let x = 400; x < WORLD_W - 304; x += snap(ri(rng, 496, 704))) {
+    decorations.push({ x: snap(x), y: 352, src: '/LargeFortressSMB.png', w: 96, h: 128 })
   }
 
   return {
