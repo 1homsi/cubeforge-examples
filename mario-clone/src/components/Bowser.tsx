@@ -4,7 +4,6 @@ import { createTransform } from '@cubeforge/core'
 import { createSprite } from '@cubeforge/renderer'
 import { createTag } from '@cubeforge/core'
 import { gameEvents } from '../gameEvents'
-import { getImage } from '../images'
 
 interface BowserHPComponent { type: 'BowserHP'; hp: number }
 
@@ -50,7 +49,7 @@ function bowserUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number
     const fid = world.createEntity()
     world.addComponent(fid, createTransform(transform.x + dir * 40, transform.y))
     const fs = createSprite({ width: 32, height: 16, color: '#ff6d00', zIndex: 12 })
-    const img = getImage('/SMBBowsersFlame.gif')
+    const img = world.assets.getImage('/SMBBowsersFlame.gif')
     if (img) fs.image = img
     fs.flipX = dir < 0
     world.addComponent(fid, fs)

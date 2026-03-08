@@ -4,7 +4,6 @@ import { createTransform } from '@cubeforge/core'
 import { createSprite } from '@cubeforge/renderer'
 import { createTag } from '@cubeforge/core'
 import { gameEvents } from '../gameEvents'
-import { getImage } from '../images'
 
 interface HammerData { vx: number; vy: number; life: number }
 const hammers = new Map<EntityId, HammerData>()
@@ -50,7 +49,7 @@ function broUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number) {
     const hid = world.createEntity()
     world.addComponent(hid, createTransform(transform.x, transform.y - 24))
     const hsprite = createSprite({ width: 16, height: 16, color: '#795548', zIndex: 11 })
-    const img = getImage('/SMB_Sprite_Axe.png')
+    const img = world.assets.getImage('/SMB_Sprite_Axe.png')
     if (img) hsprite.image = img
     world.addComponent(hid, hsprite)
     world.addComponent(hid, createTag('hammer'))

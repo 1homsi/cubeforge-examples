@@ -4,7 +4,6 @@ import { createTransform } from '@cubeforge/core'
 import { createSprite } from '@cubeforge/renderer'
 import { createTag } from '@cubeforge/core'
 import { gameEvents } from '../gameEvents'
-import { getImage } from '../images'
 
 interface BillData { vx: number; life: number }
 const bulletBills = new Map<EntityId, BillData>()
@@ -28,7 +27,7 @@ function blasterUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: numbe
     world.addComponent(bid, createTransform(bt.x, bt.y - 16))
 
     const sprite = createSprite({ width: 32, height: 16, color: '#607d8b', zIndex: 12 })
-    const img = getImage('/Bullet_Bill_Super_Mario_Bros.png')
+    const img = world.assets.getImage('/Bullet_Bill_Super_Mario_Bros.png')
     if (img) sprite.image = img
     sprite.flipX = state.dir === 1
     world.addComponent(bid, sprite)

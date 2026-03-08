@@ -6,7 +6,6 @@ import { createTransform } from '@cubeforge/core'
 import { createSprite } from '@cubeforge/renderer'
 import { createTag } from '@cubeforge/core'
 import { gameEvents } from '../gameEvents'
-import { getImage } from '../images'
 import { FLOOR_TOP, T } from '../levelGen'
 
 const actions = createInputMap({
@@ -159,7 +158,7 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
     if (bc) bc.height = targetH - 4
     state.appliedH = targetH
   }
-  const powerImg = getImage(targetSrc)
+  const powerImg = world.assets.getImage(targetSrc)
   if (powerImg) sprite.image = powerImg
 
   // ── Shoot fireball ────────────────────────────────────────────────────────
@@ -170,7 +169,7 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
     const fid = world.createEntity()
     world.addComponent(fid, createTransform(transform.x + dir * 20, transform.y + 2))
     const fs = createSprite({ width: 16, height: 16, color: '#ff6f00', zIndex: 9 })
-    const img = getImage('/SMBFireBall.gif')
+    const img = world.assets.getImage('/SMBFireBall.gif')
     if (img) fs.image = img
     world.addComponent(fid, fs)
     world.addComponent(fid, createTag('fireball'))

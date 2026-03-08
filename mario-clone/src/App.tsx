@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Game, World, Camera2D, Entity, Transform, Sprite, AssetLoader } from '@cubeforge/react'
 import { hudStore } from './hudStore'
-import { preloadImage } from './images'
 import { Player, playerConfig }  from './components/Player'
 import { Goomba }                from './components/Goomba'
 import { KoopaTroopa }           from './components/KoopaTroopa'
@@ -56,8 +55,6 @@ const ASSETS = [
   '/SMB_Sprite_Island_(Ground).png', '/SMB_Sprite_Island_(Gray).png',
   '/SMB_Sprite_Lava.png', '/SMB_Bowser_Bridge.png', '/SMB_Sprite_Firework.gif',
 ]
-// Pre-populate image cache for imperative getImage() calls in Scripts
-ASSETS.forEach(preloadImage)
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const W         = 800
