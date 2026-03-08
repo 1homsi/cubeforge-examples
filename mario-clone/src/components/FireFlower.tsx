@@ -12,7 +12,7 @@ function fireFlowerUpdate(id: EntityId, world: ECSWorld) {
   for (const pid of findByTag(world, 'player')) {
     const pt = world.getComponent<TransformComponent>(pid, 'Transform')
     if (!pt) continue
-    if (Math.abs(ft.x - pt.x) < 16 && Math.abs(ft.y - pt.y) < 16) {
+    if (Math.abs(ft.x - pt.x) < 32 && Math.abs(ft.y - pt.y) < 32) {
       collected.add(id)
       gameEvents.onFireFlower?.()
       world.destroyEntity(id)
@@ -25,8 +25,8 @@ export function FireFlower({ x, y }: { x: number; y: number }) {
   return (
     <Entity tags={['fireFlower']}>
       <Transform x={x} y={y} />
-      <Sprite src="/SMB_Sprite_Fire_Flower.png" width={16} height={16} color="#ef6c00" zIndex={5} />
-      <BoxCollider width={16} height={16} />
+      <Sprite src="/SMB_Sprite_Fire_Flower.png" width={32} height={32} color="#ef6c00" zIndex={5} />
+      <BoxCollider width={32} height={32} />
       <Script update={fireFlowerUpdate} />
     </Entity>
   )

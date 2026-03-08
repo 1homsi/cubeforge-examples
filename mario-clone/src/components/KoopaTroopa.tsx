@@ -44,9 +44,9 @@ export function KoopaTroopa({ x = 400, y = 484, patrolLeft, patrolRight, src = '
   return (
     <Entity tags={['enemy']}>
       <Transform x={x} y={y} />
-      <Sprite src={src} width={16} height={24} color="#388e3c" zIndex={10} />
+      <Sprite src={src} width={32} height={48} color="#388e3c" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={16} height={24} mask="world" />
+      <BoxCollider width={32} height={48} mask="world" />
       <Script
         init={(id) => koopaInit(id, left, right)}
         update={(id: EntityId, world: ECSWorld) => koopaUpdate(id, world)}

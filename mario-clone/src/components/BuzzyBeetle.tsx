@@ -40,9 +40,9 @@ export function BuzzyBeetle({ x = 400, y = 488, patrolLeft, patrolRight, src = '
   return (
     <Entity tags={['enemy']}>
       <Transform x={x} y={y} />
-      <Sprite src={src} width={16} height={16} color="#1565c0" zIndex={10} />
+      <Sprite src={src} width={32} height={32} color="#1565c0" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={16} height={16} mask="world" />
+      <BoxCollider width={32} height={32} mask="world" />
       <Script
         init={(id) => beetleStates.set(id, { direction: 1, leftBound: left, rightBound: right })}
         update={(id: EntityId, world: ECSWorld) => beetleUpdate(id, world)}

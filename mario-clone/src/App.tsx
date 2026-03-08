@@ -63,9 +63,9 @@ const W         = 800
 const H         = 560
 const MAX_LIVES = 3
 
-// Player spawn (tile col 5, standing on ground)
-const SPAWN_X = 5 * T + T / 2   // 88
-const SPAWN_Y = FLOOR_TOP - T / 2 // 488
+// Player spawn (tile col 3, standing on ground)
+const SPAWN_X = 3 * T + T / 2   // 112
+const SPAWN_Y = FLOOR_TOP - T / 2 // 464
 
 // ─── App ──────────────────────────────────────────────────────────────────────
 export function App() {
@@ -242,8 +242,8 @@ export function App() {
             {/* ── Castle-specific: lava + Bowser bridge ──────────────────── */}
             {layout.theme === 'castle' && <>
               <Entity>
-                <Transform x={worldW / 2} y={FLOOR_TOP + 10} />
-                <Sprite src="/SMB_Sprite_Lava.png" width={worldW} height={24} zIndex={2} />
+                <Transform x={worldW / 2} y={FLOOR_TOP + 20} />
+                <Sprite src="/SMB_Sprite_Lava.png" width={worldW} height={48} zIndex={2} />
               </Entity>
               <Entity>
                 <Transform x={worldW - 260} y={FLOOR_TOP + 10} />
@@ -252,7 +252,7 @@ export function App() {
             </>}
 
             {/* ── Goal flag ──────────────────────────────────────────────── */}
-            <GoalFlag key="goal" x={layout.goalX} y={FLOOR_TOP - 80} />
+            <GoalFlag key="goal" x={layout.goalX} y={FLOOR_TOP - 160} />
 
             {/* ── Spawned reveals ─────────────────────────────────────────── */}
             {spawnedReveals.map(r => {

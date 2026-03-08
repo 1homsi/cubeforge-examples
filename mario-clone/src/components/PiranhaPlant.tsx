@@ -38,14 +38,14 @@ function plantUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number)
 
   // Hurt player on contact
   state.hurtTimer = Math.max(0, state.hurtTimer - dt)
-  if (transform.y < state.baseY - 6 && state.hurtTimer <= 0) {
+  if (transform.y < state.baseY - 12 && state.hurtTimer <= 0) {
     const pid = world.findByTag('player')
     if (pid) {
       const pt = world.getComponent<TransformComponent>(pid, 'Transform')
       if (pt) {
         const dx = Math.abs(pt.x - transform.x)
         const dy = Math.abs(pt.y - transform.y)
-        if (dx < 16 && dy < 20) {
+        if (dx < 32 && dy < 40) {
           state.hurtTimer = 2.0
           gameEvents.onPlayerHurt?.()
         }
@@ -61,13 +61,13 @@ interface PiranhaPlantProps {
 }
 
 export function PiranhaPlant({ x, pipeTopY, src = '/SMB_Sprite_Piranha_Plant.png' }: PiranhaPlantProps) {
-  const baseY = pipeTopY + 4    // hidden inside pipe
-  const topY  = pipeTopY - 20   // fully emerged
+  const baseY = pipeTopY + 8    // hidden inside pipe
+  const topY  = pipeTopY - 40   // fully emerged
 
   return (
     <Entity tags={['enemy']}>
       <Transform x={x} y={baseY} />
-      <Sprite src={src} width={16} height={24} color="#4caf50" zIndex={11} />
+      <Sprite src={src} width={32} height={48} color="#4caf50" zIndex={11} />
       <BoxCollider width={14} height={22} isTrigger />
       <Script
         init={(id) => plantStates.set(id, { timer: 1.8, phase: 'up', baseY, topY, hurtTimer: 0 })}

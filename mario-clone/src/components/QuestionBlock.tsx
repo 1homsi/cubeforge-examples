@@ -23,7 +23,7 @@ function blockUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number)
   if (state.bounceTimer > 0) {
     state.bounceTimer -= dt
     const t = 1 - state.bounceTimer / 0.2
-    transform.y = state.spawnY - Math.sin(t * Math.PI) * 6
+    transform.y = state.spawnY - Math.sin(t * Math.PI) * 12
     if (state.bounceTimer <= 0) transform.y = state.spawnY
   }
 
@@ -36,13 +36,13 @@ function blockUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number)
     if (pt && rb) {
       const dx          = Math.abs(pt.x - transform.x)
       const blockBottom = transform.y + T / 2
-      const playerTop   = pt.y - 16 // generous: assume big mario head
+      const playerTop   = pt.y - 32 // generous: assume big mario head
 
       if (
         rb.vy < 0 &&
         dx < T &&
-        playerTop >= blockBottom - 16 &&
-        playerTop <= blockBottom + 8
+        playerTop >= blockBottom - 32 &&
+        playerTop <= blockBottom + 16
       ) {
         state.hit         = true
         state.bounceTimer = 0.2

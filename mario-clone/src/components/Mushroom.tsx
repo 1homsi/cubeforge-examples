@@ -15,7 +15,7 @@ function mushroomUpdate(id: EntityId, world: ECSWorld) {
   for (const pid of findByTag(world, 'player')) {
     const pt = world.getComponent<TransformComponent>(pid, 'Transform')
     if (!pt) continue
-    if (Math.abs(mt.x - pt.x) < 16 && Math.abs(mt.y - pt.y) < 16) {
+    if (Math.abs(mt.x - pt.x) < 32 && Math.abs(mt.y - pt.y) < 32) {
       collected.add(id)
       gameEvents.onMushroomGet?.()
       world.destroyEntity(id)
@@ -28,9 +28,9 @@ export function Mushroom({ x, y }: { x: number; y: number }) {
   return (
     <Entity tags={['mushroom']}>
       <Transform x={x} y={y} />
-      <Sprite src="/SMB_Supermushroom.png" width={16} height={16} color="#e53935" zIndex={5} />
+      <Sprite src="/SMB_Supermushroom.png" width={32} height={32} color="#e53935" zIndex={5} />
       <RigidBody />
-      <BoxCollider width={16} height={16} mask="world" />
+      <BoxCollider width={32} height={32} mask="world" />
       <Script update={mushroomUpdate} />
     </Entity>
   )

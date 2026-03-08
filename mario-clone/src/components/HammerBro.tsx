@@ -48,8 +48,8 @@ function broUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number) {
     })() : state.direction
 
     const hid = world.createEntity()
-    world.addComponent(hid, createTransform(transform.x, transform.y - 12))
-    const hsprite = createSprite({ width: 8, height: 8, color: '#795548', zIndex: 11 })
+    world.addComponent(hid, createTransform(transform.x, transform.y - 24))
+    const hsprite = createSprite({ width: 16, height: 16, color: '#795548', zIndex: 11 })
     const img = getImage('/SMB_Sprite_Axe.png')
     if (img) hsprite.image = img
     world.addComponent(hid, hsprite)
@@ -74,7 +74,7 @@ function broUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: number) {
     const pid = world.findByTag('player')
     if (pid) {
       const pt = world.getComponent<TransformComponent>(pid, 'Transform')
-      if (pt && Math.abs(ht.x - pt.x) < 12 && Math.abs(ht.y - pt.y) < 12) {
+      if (pt && Math.abs(ht.x - pt.x) < 24 && Math.abs(ht.y - pt.y) < 24) {
         gameEvents.onPlayerHurt?.()
         world.destroyEntity(hid)
         toRemove.push(hid)
@@ -100,9 +100,9 @@ export function HammerBro({ x = 400, y = 484, patrolLeft, patrolRight }: HammerB
   return (
     <Entity tags={['enemy']}>
       <Transform x={x} y={y} />
-      <Sprite src="/SMB_Hammer_Bro_Sprite.png" width={16} height={24} color="#1565c0" zIndex={10} />
+      <Sprite src="/SMB_Hammer_Bro_Sprite.png" width={32} height={48} color="#1565c0" zIndex={10} />
       <RigidBody friction={1} />
-      <BoxCollider width={16} height={24} mask="world" />
+      <BoxCollider width={32} height={48} mask="world" />
       <Script
         init={(id) => broInit(id, left, right)}
         update={(id: EntityId, world: ECSWorld, input: unknown, dt: number) => broUpdate(id, world, input, dt)}

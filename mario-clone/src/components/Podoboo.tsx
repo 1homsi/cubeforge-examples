@@ -40,8 +40,8 @@ export function Podoboo({ x, baseY }: PodobooProps) {
   return (
     <Entity tags={['enemy']}>
       <Transform x={x} y={baseY} />
-      <Sprite src="/Podoboo_Sprite_SMB.png" width={16} height={16} color="#ff1744" zIndex={11} />
-      <BoxCollider width={14} height={14} isTrigger />
+      <Sprite src="/Podoboo_Sprite_SMB.png" width={32} height={32} color="#ff1744" zIndex={11} />
+      <BoxCollider width={28} height={28} isTrigger />
       <Script
         init={(id) => podobooStates.set(id, { baseY, vy: -420, hurtTimer: 0 })}
         update={podobooUpdate}

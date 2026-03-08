@@ -25,9 +25,9 @@ function blasterUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: numbe
     if (!bt) return
 
     const bid = world.createEntity()
-    world.addComponent(bid, createTransform(bt.x, bt.y))
+    world.addComponent(bid, createTransform(bt.x, bt.y - 16))
 
-    const sprite = createSprite({ width: 16, height: 8, color: '#607d8b', zIndex: 12 })
+    const sprite = createSprite({ width: 32, height: 16, color: '#607d8b', zIndex: 12 })
     const img = getImage('/Bullet_Bill_Super_Mario_Bros.png')
     if (img) sprite.image = img
     sprite.flipX = state.dir === 1
@@ -54,7 +54,7 @@ function blasterUpdate(id: EntityId, world: ECSWorld, _input: unknown, dt: numbe
       if (pt) {
         const dx = Math.abs(bt2.x - pt.x)
         const dy = Math.abs(bt2.y - pt.y)
-        if (dx < 16 && dy < 12) {
+        if (dx < 32 && dy < 24) {
           gameEvents.onPlayerHurt?.()
         }
       }
@@ -76,9 +76,9 @@ export function BillBlaster({ x, y, dir = 1, fireInterval = 4.0 }: BillBlasterPr
   return (
     <Entity tags={['blaster']}>
       <Transform x={x} y={y} />
-      <Sprite src="/Bill_Blaster_Sprite_SMB.png" width={16} height={32} color="#37474f" zIndex={8} />
+      <Sprite src="/Bill_Blaster_Sprite_SMB.png" width={32} height={64} color="#37474f" zIndex={8} />
       <RigidBody isStatic />
-      <BoxCollider width={16} height={32} layer="world" />
+      <BoxCollider width={32} height={64} layer="world" />
       <Script
         init={(id) => blasterStates.set(id, { fireTimer: fireInterval * 0.5, fireInterval, dir })}
         update={blasterUpdate}

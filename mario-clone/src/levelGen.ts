@@ -1,14 +1,14 @@
 // ─── Tile System Constants ────────────────────────────────────────────────────
-export const T          = 16          // tile size in pixels
-export const ROWS       = 35         // viewport rows (560 / 16)
-export const GROUND_ROW = 31         // first row of ground tiles
-export const GROUND_DEPTH = 4        // ground tiles deep (rows 31-34)
-export const BLOCK_ROW  = 27         // standard block height (4 tiles above ground)
+export const T          = 32          // tile size in pixels
+export const ROWS       = 18         // viewport rows (560 / 32)
+export const GROUND_ROW = 15         // first row of ground tiles
+export const GROUND_DEPTH = 3        // ground tiles deep (rows 15,16,17)
+export const BLOCK_ROW  = 11         // standard block height (4 tiles above ground)
 
 // Backward-compat aliases
 export const TILE      = T
-export const FLOOR_TOP = GROUND_ROW * T        // 496
-export const FLOOR_H   = GROUND_DEPTH * T      // 64
+export const FLOOR_TOP = GROUND_ROW * T        // 480
+export const FLOOR_H   = GROUND_DEPTH * T      // 96
 export const FLOOR_Y   = FLOOR_TOP + FLOOR_H / 2 // 528
 
 // ─── Tile Indices ─────────────────────────────────────────────────────────────
@@ -215,10 +215,10 @@ function extractPipes(tiles: number[][], pipeSrc: string): PipeDef[] {
 // ─── Enemy Spawn Helpers ──────────────────────────────────────────────────────
 function enemyY(type: EnemyDef['type']): number {
   switch (type) {
-    case 'goomba': case 'buzzy': case 'podoboo': return FLOOR_TOP - T / 2     // 488
-    case 'koopa': case 'paratroopa': case 'hammerbro': return FLOOR_TOP - 12   // 484
-    case 'billblaster': return FLOOR_TOP - T                                    // 480
-    case 'bowser': return FLOOR_TOP - T                                         // 480
+    case 'goomba': case 'buzzy': case 'podoboo': return FLOOR_TOP - T / 2     // 464
+    case 'koopa': case 'paratroopa': case 'hammerbro': return FLOOR_TOP - 24   // 456
+    case 'billblaster': return FLOOR_TOP - T                                    // 448
+    case 'bowser': return FLOOR_TOP - T                                         // 448
     default: return FLOOR_TOP - T / 2
   }
 }
@@ -271,9 +271,9 @@ function buildLevelData(
 // ═══════════════════════════════════════════════════════════════════════════════
 export function genLevel1(seed: number): LevelData {
   const rng  = makeRng(seed)
-  const COLS = 200 + ri(rng, 0, 38)
-  const STAIR_COL = COLS - 18
-  const GOAL_COL  = COLS - 8
+  const COLS = 100 + ri(rng, 0, 19)
+  const STAIR_COL = COLS - 9
+  const GOAL_COL  = COLS - 4
 
   const tiles   = createTilemap(COLS)
   const reveals = new Map<string, RevealType>()
@@ -285,17 +285,17 @@ export function genLevel1(seed: number): LevelData {
   fillGround(tiles, 0, COLS)
 
   // ── Pit ─────────────────────────────────────────────────────────────────────
-  const pitCol = 69 + ri(rng, 0, 31)
-  const pitW   = ri(rng, 4, 6)
+  const pitCol = 35 + ri(rng, 0, 15)
+  const pitW   = ri(rng, 2, 3)
   carvePit(tiles, pitCol, pitW)
-  const nearPit = (c: number, m = 5) => c > pitCol - m && c < pitCol + pitW + m
+  const nearPit = (c: number, m = 3) => c > pitCol - m && c < pitCol + pitW + m
 
   // ── Pipes (3 candidates, 2 tiles wide, min 6 tiles apart) ──────────────────
   const pipeCols: number[] = []
-  const pipeCandidates = [29, pitCol - 14, pitCol + pitW + 20]
+  const pipeCandidates = [15, pitCol - 7, pitCol + pitW + 10]
   for (const pc of pipeCandidates) {
     if (pc < 5 || pc + 1 >= STAIR_COL || nearPit(pc)) continue
-    if (pipeCols.some(prev => Math.abs(prev - pc) < 6)) continue
+    if (pipeCols.some(prev => Math.abs(prev - pc) < 3)) continue
     const h = rc(rng, [2, 3, 4] as const)
     setPipe(tiles, pc, h)
     pipeCols.push(pc)
@@ -303,10 +303,10 @@ export function genLevel1(seed: number): LevelData {
   }
 
   // ── Block clusters (brick/question groups, 3-5 tiles) ──────────────────────
-  const clusterCols = [18, 36, 55, 80, 100, 120, 140, 160, 180]
+  const clusterCols = [9, 18, 28, 40, 50, 60, 70, 80, 90]
   for (const cx of clusterCols) {
-    if (cx >= STAIR_COL - 8 || nearPit(cx, 4)) continue
-    if (pipeCols.some(pc => Math.abs(cx - pc) < 4)) continue
+    if (cx >= STAIR_COL - 8 || nearPit(cx, 3)) continue
+    if (pipeCols.some(pc => Math.abs(cx - pc) < 2)) continue
     const row   = rng() > 0.4 ? BLOCK_ROW : BLOCK_ROW - 2
     const len   = ri(rng, 3, 5)
     const qPos  = ri(rng, 0, len - 1)
@@ -317,19 +317,19 @@ export function genLevel1(seed: number): LevelData {
   }
 
   // ── Enemies ─────────────────────────────────────────────────────────────────
-  // First enemy 14-18 tiles from player spawn (col 5)
-  let nextE = 5 + ri(rng, 14, 18)
+  // First enemy a few tiles from player spawn (col 3)
+  let nextE = 3 + ri(rng, 7, 9)
   while (nextE < STAIR_COL - 13) {
-    if (!nearPit(nextE, 6) && !pipeCols.some(pc => Math.abs(pc - nextE) < 5)) {
+    if (!nearPit(nextE, 3) && !pipeCols.some(pc => Math.abs(pc - nextE) < 3)) {
       const type = rc(rng, ['goomba', 'goomba', 'goomba', 'koopa', 'paratroopa'] as const)
       enemies.push(makeEnemy(type, nextE, ri(rng, 5, 10)))
       // Cluster of 2 (max)
       if (rng() > 0.6) {
         const col2 = nextE + ri(rng, 4, 5)
-        if (!nearPit(col2, 6)) enemies.push(makeEnemy('goomba', col2, ri(rng, 4, 8)))
-        nextE = col2 + ri(rng, 10, 16) // 6-8 safe tiles after cluster
+        if (!nearPit(col2, 3)) enemies.push(makeEnemy('goomba', col2, ri(rng, 4, 8)))
+        nextE = col2 + ri(rng, 5, 8) // safe tiles after cluster
       } else {
-        nextE += ri(rng, 8, 14)
+        nextE += ri(rng, 4, 7)
       }
     } else {
       nextE += ri(rng, 4, 6)
@@ -337,8 +337,8 @@ export function genLevel1(seed: number): LevelData {
   }
 
   // Bill blasters near staircase
-  enemies.push(makeEnemy('billblaster', STAIR_COL - 19, 0, { dir: 1, interval: 3.5 }))
-  enemies.push(makeEnemy('billblaster', STAIR_COL - 5,  0, { dir: 1, interval: 4.8 }))
+  enemies.push(makeEnemy('billblaster', STAIR_COL - 10, 0, { dir: 1, interval: 3.5 }))
+  enemies.push(makeEnemy('billblaster', STAIR_COL - 3,  0, { dir: 1, interval: 4.8 }))
 
   // ── Staircase ───────────────────────────────────────────────────────────────
   setStaircase(tiles, STAIR_COL)
@@ -361,9 +361,9 @@ export function genLevel1(seed: number): LevelData {
 // ═══════════════════════════════════════════════════════════════════════════════
 export function genLevel2(seed: number): LevelData {
   const rng  = makeRng(seed + 99991)
-  const COLS = 238
-  const STAIR_COL = COLS - 18
-  const GOAL_COL  = COLS - 8
+  const COLS = 119
+  const STAIR_COL = COLS - 9
+  const GOAL_COL  = COLS - 4
 
   const tiles   = createTilemap(COLS)
   const reveals = new Map<string, RevealType>()
@@ -375,14 +375,14 @@ export function genLevel2(seed: number): LevelData {
 
   // ── Pipes ───────────────────────────────────────────────────────────────────
   const pipeCols: number[] = []
-  for (let col = 38; col < STAIR_COL - 13; col += ri(rng, 47, 66)) {
+  for (let col = 19; col < STAIR_COL - 13; col += ri(rng, 24, 33)) {
     setPipe(tiles, col, 2)
     pipeCols.push(col)
     if (rng() > 0.4) piranhaXs.push(col * T + T)
   }
 
   // ── Block clusters (denser) ─────────────────────────────────────────────────
-  for (let cx = 12; cx < STAIR_COL - 12; cx += ri(rng, 16, 26)) {
+  for (let cx = 12; cx < STAIR_COL - 12; cx += ri(rng, 8, 13)) {
     if (pipeCols.some(pc => Math.abs(pc - cx) < 5)) continue
     const row  = rc(rng, [BLOCK_ROW, BLOCK_ROW - 2, BLOCK_ROW + 2] as const)
     const len  = ri(rng, 3, 6)
@@ -393,9 +393,9 @@ export function genLevel2(seed: number): LevelData {
   }
 
   // ── Enemies ─────────────────────────────────────────────────────────────────
-  let nextE = 19
+  let nextE = 10
   while (nextE < STAIR_COL - 13) {
-    if (!pipeCols.some(pc => Math.abs(pc - nextE) < 6)) {
+    if (!pipeCols.some(pc => Math.abs(pc - nextE) < 3)) {
       const type = rc(rng, ['goomba', 'goomba', 'buzzy', 'koopa'] as const)
       const src  = type === 'goomba' ? '/GoombaSMBGrey.gif'
                  : type === 'koopa'  ? '/SMB_NES_Blue_Koopa_Troopa_Walking.gif'
@@ -403,11 +403,11 @@ export function genLevel2(seed: number): LevelData {
                  : undefined
       enemies.push(makeEnemy(type, nextE, ri(rng, 5, 10), { src }))
     }
-    nextE += ri(rng, 19, 31)
+    nextE += ri(rng, 10, 16)
   }
 
-  // Bill blasters (from col 125)
-  for (let col = 125; col < STAIR_COL - 6; col += ri(rng, 25, 38))
+  // Bill blasters (from col 63)
+  for (let col = 63; col < STAIR_COL - 6; col += ri(rng, 13, 19))
     enemies.push(makeEnemy('billblaster', col, 0, { dir: rng() > 0.5 ? 1 : -1, interval: 3 + rng() * 2 }))
 
   setStaircase(tiles, STAIR_COL)
@@ -426,9 +426,9 @@ export function genLevel2(seed: number): LevelData {
 // ═══════════════════════════════════════════════════════════════════════════════
 export function genLevel3(seed: number): LevelData {
   const rng  = makeRng(seed + 77777)
-  const COLS = 188
-  const STAIR_COL = COLS - 18
-  const GOAL_COL  = COLS - 8
+  const COLS = 94
+  const STAIR_COL = COLS - 9
+  const GOAL_COL  = COLS - 4
 
   const tiles   = createTilemap(COLS)
   const reveals = new Map<string, RevealType>()
@@ -440,14 +440,14 @@ export function genLevel3(seed: number): LevelData {
 
   // ── Pipes (gray) ────────────────────────────────────────────────────────────
   const pipeCols: number[] = []
-  for (let col = 31; col < STAIR_COL - 13; col += ri(rng, 47, 63)) {
+  for (let col = 16; col < STAIR_COL - 13; col += ri(rng, 24, 32)) {
     setPipe(tiles, col, 2)
     pipeCols.push(col)
     if (rng() > 0.4) piranhaXs.push(col * T + T)
   }
 
   // ── Block clusters ──────────────────────────────────────────────────────────
-  for (let cx = 12; cx < STAIR_COL - 12; cx += ri(rng, 19, 28)) {
+  for (let cx = 12; cx < STAIR_COL - 12; cx += ri(rng, 10, 14)) {
     if (pipeCols.some(pc => Math.abs(pc - cx) < 5)) continue
     const row  = rc(rng, [BLOCK_ROW, BLOCK_ROW - 2] as const)
     const len  = ri(rng, 3, 5)
@@ -458,28 +458,28 @@ export function genLevel3(seed: number): LevelData {
   }
 
   // ── Enemies ─────────────────────────────────────────────────────────────────
-  let nextE = 18
+  let nextE = 9
   while (nextE < STAIR_COL - 19) {
-    if (!pipeCols.some(pc => Math.abs(pc - nextE) < 6)) {
+    if (!pipeCols.some(pc => Math.abs(pc - nextE) < 3)) {
       const type = rc(rng, ['goomba', 'koopa', 'buzzy', 'hammerbro'] as const)
       const src  = type === 'goomba' ? '/SMBBlueGoomba.gif'
                  : type === 'buzzy'  ? '/SMB_Buzzy_Beetle_Castle_Sprite.gif'
                  : undefined
       enemies.push(makeEnemy(type, nextE, ri(rng, 5, 10), { src }))
     }
-    nextE += ri(rng, 16, 26)
+    nextE += ri(rng, 8, 13)
   }
 
   // Podoboos
-  for (let col = 31; col < STAIR_COL - 19; col += ri(rng, 25, 38))
+  for (let col = 16; col < STAIR_COL - 19; col += ri(rng, 13, 19))
     enemies.push(makeEnemy('podoboo', col, 0))
 
   // Bill blasters
-  enemies.push(makeEnemy('billblaster', STAIR_COL - 31, 0, { dir: 1,  interval: 3.0 }))
-  enemies.push(makeEnemy('billblaster', STAIR_COL - 18, 0, { dir: -1, interval: 3.8 }))
+  enemies.push(makeEnemy('billblaster', STAIR_COL - 16, 0, { dir: 1,  interval: 3.0 }))
+  enemies.push(makeEnemy('billblaster', STAIR_COL - 9, 0, { dir: -1, interval: 3.8 }))
 
   // Bowser
-  const bowserCol = COLS - 20
+  const bowserCol = COLS - 10
   enemies.push({
     type: 'bowser', x: tx(bowserCol), y: enemyY('bowser'),
     left: (bowserCol - 6) * T, right: (bowserCol + 6) * T,
@@ -489,7 +489,7 @@ export function genLevel3(seed: number): LevelData {
 
   // Fortress decorations
   const decorations: LevelData['decorations'] = []
-  for (let x = 400; x < COLS * T - 304; x += ri(rng, 496, 704))
+  for (let x = 200; x < COLS * T - 152; x += ri(rng, 248, 352))
     decorations.push({ x, y: 352, src: '/LargeFortressSMB.png', w: 96, h: 128 })
 
   return buildLevelData(

@@ -25,21 +25,21 @@ export function GoalFlag({ x, y }: GoalFlagProps) {
       {/* Flag pole */}
       <Entity tags={['goalFlag']}>
         <Transform x={x} y={y} />
-        <Sprite src="/SMB_Goal_Pole.png" width={8} height={160} color="#888" zIndex={4} />
-        <BoxCollider width={16} height={160} isTrigger />
+        <Sprite src="/SMB_Goal_Pole.png" width={16} height={320} color="#888" zIndex={4} />
+        <BoxCollider width={32} height={320} isTrigger />
         <GoalActivator />
       </Entity>
 
       {/* Castle at end */}
       <Entity>
-        <Transform x={x + 80} y={y + 24} />
-        <Sprite src="/SMBCastle.png" width={80} height={80} color="#555" zIndex={1} />
+        <Transform x={x + 160} y={y + 48} />
+        <Sprite src="/SMBCastle.png" width={160} height={160} color="#555" zIndex={1} />
       </Entity>
 
       {/* Princess Toadstool */}
       <Entity>
-        <Transform x={x + 72} y={y + 44} />
-        <Sprite src="/SMB_Princess_Toadstool_Sprite.png" width={16} height={24} color="#f48fb1" zIndex={5} />
+        <Transform x={x + 144} y={y + 88} />
+        <Sprite src="/SMB_Princess_Toadstool_Sprite.png" width={32} height={48} color="#f48fb1" zIndex={5} />
       </Entity>
     </>
   )

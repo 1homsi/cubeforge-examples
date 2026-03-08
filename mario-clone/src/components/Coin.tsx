@@ -28,13 +28,13 @@ export function Coin({ x, y, src = '/SMB_Sprite_Coin.png', onCollect }: CoinProp
   return (
     <Entity tags={['coin']}>
       <Transform x={x} y={y} />
-      <Sprite src={src} width={16} height={16} color="#ffd700" zIndex={5} />
-      <BoxCollider width={16} height={16} isTrigger />
+      <Sprite src={src} width={32} height={32} color="#ffd700" zIndex={5} />
+      <BoxCollider width={32} height={32} isTrigger />
       <Script
         update={(_id: EntityId, world: ECSWorld, _input: unknown, dt: number) => {
           timer.current += dt
           const t = world.getComponent<TransformComponent>(_id, 'Transform')
-          if (t) t.y = y + Math.sin(timer.current * 3) * 5
+          if (t) t.y = y + Math.sin(timer.current * 3) * 10
         }}
       />
       <CoinCollector onCollect={onCollect} />
