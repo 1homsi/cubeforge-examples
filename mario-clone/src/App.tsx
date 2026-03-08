@@ -20,7 +20,7 @@ import { Mushroom }              from './components/Mushroom'
 import { FireFlower }            from './components/FireFlower'
 import { StarItem }              from './components/StarItem'
 import { OneUpMushroom }         from './components/OneUpMushroom'
-import { GoalFlag }              from './components/GoalFlag'
+import { GoalFlag, resetGoalFlag } from './components/GoalFlag'
 import { HUD }                   from './components/HUD'
 import { GameOverlays }          from './components/GameOverlays'
 import { gameEvents }            from './gameEvents'
@@ -132,6 +132,7 @@ export function App() {
     playerConfig.spawnX = SPAWN_X; playerConfig.spawnY = SPAWN_Y
     setLevel(lv); setCollectedCoins(new Set()); setRevealedBlocks(new Set())
     setSpawnedReveals([]); setHasMushroom(false); setHasFireFlower(false); setHasStar(false)
+    resetGoalFlag()
     setGameState('playing'); setGameKey(k => k + 1)
   }
   const restart   = () => { setScore(0); setLives(MAX_LIVES); startLevel(1) }

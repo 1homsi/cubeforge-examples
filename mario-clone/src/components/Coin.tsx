@@ -37,7 +37,7 @@ export function Coin({ x, y, src = '/SMB_Sprite_Coin.png', onCollect }: CoinProp
               // Hide instead of destroy — let React unmount handle cleanup
               const sprite = world.getComponent<{ type: 'Sprite'; visible: boolean }>(id, 'Sprite')
               if (sprite) sprite.visible = false
-              onCollectRef.current?.(id)
+              setTimeout(() => onCollectRef.current?.(id), 0)
               return
             }
           }
