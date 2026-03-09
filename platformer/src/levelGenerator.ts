@@ -52,6 +52,8 @@ export interface LevelData {
   movingPlatforms: MovingPlatDef[]
   background:      string
   groundSrc:       string
+  heartX:          number
+  heartY:          number
 }
 
 // ─── World constants ──────────────────────────────────────────────────────────
@@ -233,6 +235,12 @@ export function generateLevel(level: number, seed: number): LevelData {
   for (let k = -1; k <= 1; k++)
     addCoin(FINAL_X + k * 45, pTop(FINAL_Y) - COIN_ABOVE)
 
+  // ── Heart pickup — one per level on a random mid platform ─────────────────
+  const midPlats = platforms.filter(p => p.key !== 'spawn' && p.key !== 'final')
+  const hp       = midPlats[Math.floor(rand() * midPlats.length)]
+  const heartX   = hp ? hp.x + Math.round((rand() - 0.5) * hp.width * 0.4) : FINAL_X
+  const heartY   = hp ? pTop(hp.y) - 35 : pTop(FINAL_Y) - 35
+
   return {
     worldWidth:      FINAL_X + FINAL_W / 2 + 200,
     totalCoins:      coins.length,
@@ -242,5 +250,7 @@ export function generateLevel(level: number, seed: number): LevelData {
     movingPlatforms,
     background:      cfg.bg,
     groundSrc:       cfg.groundSrc,
+    heartX,
+    heartY,
   }
 }

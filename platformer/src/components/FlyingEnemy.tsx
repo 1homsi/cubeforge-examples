@@ -2,9 +2,9 @@ import { Entity, Transform, AnimatedSprite, Script } from '@cubeforge/react'
 import { defineAnimations } from '@cubeforge/react'
 import type { EntityId, ECSWorld, TransformComponent, SpriteComponent } from '@cubeforge/react'
 
-// Reuse the same slime sheet — tinted differently to look distinct
+// bat.png: 64×96 — 2 cols × 3 rows of 32×32 = 6 frames
 const flyingAnims = defineAnimations({
-  fly: { frames: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], fps: 12 },
+  fly: { frames: [0, 1, 2, 3, 4, 5], fps: 10 },
 })
 
 interface FlyingState {
@@ -60,7 +60,6 @@ interface FlyingEnemyProps {
 export function FlyingEnemy({
   x = 400, y = 300,
   patrolLeft, patrolRight,
-  color = '#ce93d8',
 }: FlyingEnemyProps) {
   const left  = patrolLeft  ?? x - 130
   const right = patrolRight ?? x + 130
@@ -70,10 +69,9 @@ export function FlyingEnemy({
     <Entity tags={['enemy']}>
       <Transform x={x} y={y} />
       <AnimatedSprite
-        src="/slime_sheet.png"
-        frameWidth={36} frameHeight={32} frameColumns={10}
-        width={36} height={32}
-        color={color}
+        src="/bat.png"
+        frameWidth={32} frameHeight={32} frameColumns={2}
+        width={32} height={32}
         zIndex={10}
         animations={flyingAnims}
         current="fly"

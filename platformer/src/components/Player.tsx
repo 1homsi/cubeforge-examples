@@ -6,7 +6,7 @@ import { gameCallbacks } from '../gameEvents'
 
 const SPEED          = 230
 const JUMP_FORCE     = -540
-const MAX_JUMPS      = 2
+const MAX_JUMPS      = 1
 const COYOTE_TIME    = 0.1
 const JUMP_BUFFER    = 0.09
 const INVINCIBLE_DUR = 2.0

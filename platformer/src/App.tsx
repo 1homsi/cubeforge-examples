@@ -7,11 +7,12 @@ import { FlyingEnemy }  from './components/FlyingEnemy'
 import { ChaserEnemy }  from './components/ChaserEnemy'
 import { Ground }       from './components/Ground'
 import { Coin }         from './components/Coin'
+import { HeartPickup }  from './components/HeartPickup'
 import { gameCallbacks } from './gameEvents'
 import { generateLevel } from './levelGenerator'
 
 // ─── Asset preload ────────────────────────────────────────────────────────────
-const ASSETS = ['/player_alt.png', '/slime_sheet.png', '/coin.png', '/ground_cave.png', '/ground_rock.png', '/tile.png', '/enemy.png']
+const ASSETS = ['/player_alt.png', '/slime_sheet.png', '/coin.png', '/ground_cave.png', '/ground_rock.png', '/tile.png', '/enemy.png', '/bat.png', '/heart.png']
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const W          = 800
@@ -58,6 +59,7 @@ export function App() {
   const [lives,          setLives]          = useState(MAX_LIVES)
   const [gameState,      setGameState]      = useState<GameState>('playing')
   const [collectedCoins, setCollectedCoins] = useState<Set<number>>(new Set())
+  const [heartCollected, setHeartCollected] = useState(false)
   const [time,           setTime]           = useState(0)
   const [paused,         setPaused]         = useState(false)
 
@@ -99,10 +101,16 @@ export function App() {
     setScore(s => s + 10)
   }, [levelData.totalCoins, levelNum])
 
+  const handleHeartCollect = useCallback(() => {
+    setHeartCollected(true)
+    setLives(prev => Math.min(MAX_LIVES, prev + 1))
+  }, [])
+
   function nextLevel() {
     setLevelNum(n => n + 1)
     setSeed(Math.floor(Math.random() * 0xffffff))
     setCollectedCoins(new Set())
+    setHeartCollected(false)
     setGameState('playing')
     setGameKey(k => k + 1)
   }
@@ -114,6 +122,7 @@ export function App() {
     setLives(MAX_LIVES)
     setGameState('playing')
     setCollectedCoins(new Set())
+    setHeartCollected(false)
     setTime(0)
     setGameKey(k => k + 1)
   }
@@ -187,6 +196,11 @@ export function App() {
                 <Coin key={c.id} x={c.x} y={c.y} onCollect={(eid) => handleCoinCollect(eid, c.id)} />
               ))
             }
+
+            {/* Heart pickup */}
+            {!heartCollected && (
+              <HeartPickup x={levelData.heartX} y={levelData.heartY} onCollect={handleHeartCollect} />
+            )}
 
             {/* Floor */}
             <Ground key="floor"   x={levelData.worldWidth / 2} y={FLOOR_Y}               width={levelData.worldWidth} height={28} src={levelData.groundSrc} />
@@ -293,7 +307,7 @@ export function App() {
         display: 'flex',
         justifyContent: 'space-between',
       }}>
-        <span>WASD / Arrows — move &nbsp;·&nbsp; Space / Up — jump (×2) &nbsp;·&nbsp; Jump on enemies to stomp &nbsp;·&nbsp; P — pause</span>
+        <span>WASD / Arrows — move &nbsp;·&nbsp; Space / Up — jump &nbsp;·&nbsp; Jump on enemies to stomp &nbsp;·&nbsp; P — pause</span>
         <span style={{ color: '#263238' }}>Cubeforge Engine</span>
       </div>
     </div>
