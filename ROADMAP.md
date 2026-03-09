@@ -195,7 +195,7 @@ This is the development roadmap for **cubeforge-examples** -- a growing collecti
 
 | Game | Status | Description |
 |------|--------|-------------|
-| Angry Birds Style | :construction: | Slingshot projectiles at structures |
+| Angry Birds Style | :white_check_mark: | Slingshot projectiles at structures |
 | Rope Physics | :white_circle: | Swing on realistic rope mechanics |
 | Bridge Builder | :white_circle: | Engineer bridges to support weight |
 | Ragdoll Playground | :white_circle: | Floppy character physics sandbox |
