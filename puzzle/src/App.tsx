@@ -1,10 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Game, World, Camera2D } from '@cubeforge/react'
 import {
-  GRID_W, GRID_H, CELL,
+  LEVELS,
   canvasSize,
-  getLevel,
-  regenerateLevel,
   SokobanManager,
   GridTiles,
   TargetMarkers,
@@ -17,7 +15,9 @@ import {
 } from './components/SokobanGame'
 import type { SokobanState } from './components/SokobanGame'
 
-const { w: W, h: H } = canvasSize()
+// Use the largest level dimensions for a fixed canvas
+const MAX_W = Math.max(...LEVELS.map(l => l.width))
+const MAX_H = Math.max(...LEVELS.map(l => l.height))
 
 // ─── App ────────────────────────────────────────────────────────────────────
 export function App() {
@@ -27,7 +27,8 @@ export function App() {
   const [complete,  setComplete]  = useState(false)
   const [snapshot,  setSnapshot]  = useState<SokobanState | null>(null)
 
-  // Sync React state from engine callbacks
+  const { w: W, h: H } = canvasSize(levelIdx)
+
   useEffect(() => {
     sokobanEvents.onStateChange = (state: SokobanState) => {
       setMoves(state.moves)
@@ -50,25 +51,18 @@ export function App() {
   }, [])
 
   const handleNextLevel = useCallback(() => {
-    const next = levelIdx + 1
-    setLevelIdx(next)
-    setLevel(next)
-    setComplete(false)
-    setMoves(0)
-    nextLevel()
-    setGameKey(k => k + 1)
+    if (levelIdx < LEVELS.length - 1) {
+      const next = levelIdx + 1
+      setLevelIdx(next)
+      setLevel(next)
+      setComplete(false)
+      setMoves(0)
+      nextLevel()
+      setGameKey(k => k + 1)
+    }
   }, [levelIdx])
 
-  const handleNewPuzzle = useCallback(() => {
-    regenerateLevel(levelIdx)
-    setComplete(false)
-    setMoves(0)
-    restartLevel()
-    setGameKey(k => k + 1)
-  }, [levelIdx])
-
-  // Initial snapshot for first render
-  const level = getLevel(levelIdx)
+  const level = LEVELS[levelIdx]
   const displayState = snapshot ?? {
     level:    levelIdx,
     cols:     level.width,
@@ -80,8 +74,7 @@ export function App() {
     complete: false,
   }
 
-  // Number of boxes for this level
-  const numBoxes = Math.min(1 + Math.floor(levelIdx / 2), 5)
+  const numBoxes = level.boxes.length
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
@@ -104,7 +97,7 @@ export function App() {
           LEVEL <span style={{ fontSize: 22, fontWeight: 900, color: '#4fc3f7', letterSpacing: 2 }}>
             {levelIdx + 1}
           </span>
-          <span style={{ fontSize: 11, color: '#37474f' }}> &middot; {numBoxes} box{numBoxes !== 1 ? 'es' : ''}</span>
+          <span style={{ fontSize: 11, color: '#37474f' }}> / {LEVELS.length}</span>
         </div>
         <div style={{ textAlign: 'center', fontSize: 11, color: '#546e7a', letterSpacing: 4 }}>
           SOKOBAN
@@ -142,7 +135,7 @@ export function App() {
                 color: '#67c23a',
                 letterSpacing: 3,
               }}>
-                NICE!
+                {levelIdx < LEVELS.length - 1 ? 'NICE!' : 'YOU WIN!'}
               </p>
               <p style={{ fontSize: 13, color: '#90a4ae', margin: '12px 0 4px' }}>
                 Solved in {moves} move{moves !== 1 ? 's' : ''}
@@ -151,16 +144,18 @@ export function App() {
                 <button onClick={handleRestart} style={{ ...btnStyle, background: '#546e7a' }}>
                   Retry
                 </button>
-                <button onClick={handleNextLevel} style={btnStyle}>
-                  Next Level
-                </button>
+                {levelIdx < LEVELS.length - 1 && (
+                  <button onClick={handleNextLevel} style={btnStyle}>
+                    Next Level
+                  </button>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* ── Controls bar ────────────────────────────────────────────────── */}
+      {/* ── Controls hint ────────────────────────────────────────────────── */}
       <div style={{
         width: W,
         background: '#0d0f1a',
@@ -171,25 +166,8 @@ export function App() {
         letterSpacing: 1.5,
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'center',
       }}>
         <span>Arrows &mdash; move &nbsp;&middot;&nbsp; R &mdash; restart</span>
-        <button
-          onClick={handleNewPuzzle}
-          style={{
-            background: 'none',
-            border: '1px solid #1e2535',
-            borderRadius: 4,
-            color: '#546e7a',
-            fontFamily: '"Courier New", monospace',
-            fontSize: 10,
-            letterSpacing: 2,
-            padding: '3px 10px',
-            cursor: 'pointer',
-          }}
-        >
-          NEW PUZZLE
-        </button>
         <span style={{ color: '#263238' }}>Cubeforge Engine</span>
       </div>
     </div>

@@ -13,6 +13,9 @@
     "dev:rpg": "pnpm --filter rpg-example dev",
     "dev:tower-defense": "pnpm --filter tower-defense-example dev",
     "dev:roguelike": "pnpm --filter roguelike-example dev",
-    "dev:multiplayer": "pnpm --filter multiplayer-example dev"
+    "dev:multiplayer": "pnpm --filter multiplayer-example dev",
+    "dev:2048": "pnpm --filter 2048-example dev",
+    "dev:minesweeper": "pnpm --filter minesweeper-example dev",
+    "dev:lights-out": "pnpm --filter lights-out-example dev"
   }
 }

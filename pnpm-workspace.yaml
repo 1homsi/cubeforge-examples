@@ -15,3 +15,6 @@ packages:
   - 'tower-defense'
   - 'roguelike'
   - 'multiplayer'
+  - '2048'
+  - 'minesweeper'
+  - 'lights-out'

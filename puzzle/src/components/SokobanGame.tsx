@@ -4,8 +4,6 @@ import type { InputManager } from '@cubeforge/react'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 export const CELL = 48
-export const GRID_W = 9
-export const GRID_H = 9
 
 const COLORS = {
   wall:        '#1a1f33',
@@ -27,206 +25,127 @@ export interface LevelDef {
   player: { x: number; y: number }
 }
 
-// ─── Seeded RNG ──────────────────────────────────────────────────────────────
-function mulberry32(seed: number) {
-  let s = seed | 0
-  return () => {
-    s = (s + 0x6d2b79f5) | 0
-    let t = Math.imul(s ^ (s >>> 15), 1 | s)
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+// ─── Level data ──────────────────────────────────────────────────────────────
+// W=wall .=floor T=target B=box P=player
+// Every level is hand-tested to be solvable.
+
+const RAW_LEVELS: string[][] = [
+  // Level 1 — 5x5, 1 box (tutorial)
+  [
+    'WWWWW',
+    'W..TW',
+    'W.B.W',
+    'WP..W',
+    'WWWWW',
+  ],
+  // Level 2 — 6x5, 1 box (longer push)
+  [
+    'WWWWWW',
+    'WP...W',
+    'W.B..W',
+    'W...TW',
+    'WWWWWW',
+  ],
+  // Level 3 — 6x6, 2 boxes
+  [
+    'WWWWWW',
+    'W....W',
+    'W.BT.W',
+    'W.TB.W',
+    'WP...W',
+    'WWWWWW',
+  ],
+  // Level 4 — 7x5, 2 boxes with a wall obstacle
+  [
+    'WWWWWWW',
+    'WT.B..W',
+    'W..W..W',
+    'WT.B.PW',
+    'WWWWWWW',
+  ],
+  // Level 5 — 7x6, 2 boxes, L-shaped room
+  [
+    'WWWWWWW',
+    'W.....W',
+    'W.BWB.W',
+    'W..W..W',
+    'WP.T.TW',
+    'WWWWWWW',
+  ],
+  // Level 6 — 7x7, 3 boxes
+  [
+    'WWWWWWW',
+    'W.....W',
+    'W.B.B.W',
+    'W..W..W',
+    'W.B...W',
+    'WPT.TTW',
+    'WWWWWWW',
+  ],
+  // Level 7 — 8x6, 3 boxes, corridors
+  [
+    'WWWWWWWW',
+    'WT....TW',
+    'W.WBW..W',
+    'W..B...W',
+    'W.PB..TW',
+    'WWWWWWWW',
+  ],
+  // Level 8 — 8x7, 4 boxes
+  [
+    'WWWWWWWW',
+    'W......W',
+    'W.B.B..W',
+    'W..WW..W',
+    'W.B.B..W',
+    'WP.TTTTW',
+    'WWWWWWWW',
+  ],
+  // Level 9 — 9x7, 4 boxes, more walls
+  [
+    'WWWWWWWWW',
+    'W.......W',
+    'W.BWB.W.W',
+    'W...W...W',
+    'W.B.W.B.W',
+    'WP.TT.TTW',
+    'WWWWWWWWW',
+  ],
+  // Level 10 — 9x8, 5 boxes
+  [
+    'WWWWWWWWW',
+    'W.......W',
+    'W.B.B.B.W',
+    'W..W.W..W',
+    'W...B...W',
+    'W..B....W',
+    'WPTTTTTPW',
+    'WWWWWWWWW',
+  ],
+]
+
+function parseLevel(raw: string[]): LevelDef {
+  const height = raw.length
+  const width  = raw[0].length
+  const grid:  Tile[] = []
+  const boxes: { x: number; y: number }[] = []
+  let player = { x: 0, y: 0 }
+
+  for (let r = 0; r < height; r++) {
+    for (let c = 0; c < width; c++) {
+      const ch = raw[r][c]
+      if (ch === 'W')      { grid.push('W') }
+      else if (ch === 'T') { grid.push('T') }
+      else if (ch === 'B') { grid.push('.'); boxes.push({ x: c, y: r }) }
+      else if (ch === 'X') { grid.push('T'); boxes.push({ x: c, y: r }) }
+      else if (ch === 'P') { grid.push('.'); player = { x: c, y: r } }
+      else                 { grid.push('.') }
+    }
   }
+  return { width, height, grid, boxes, player }
 }
 
-// ─── Procedural level generator ──────────────────────────────────────────────
-// Strategy: generate a room with inner walls, place boxes on targets,
-// then "reverse-play" random pulls to scatter boxes away from targets.
-// This guarantees every generated level is solvable.
-
-export function generateLevel(levelNum: number): LevelDef {
-  const rng = mulberry32(levelNum * 7919 + 31)
-  const w = GRID_W
-  const h = GRID_H
-  const grid: Tile[] = new Array(w * h).fill('.')
-
-  const idx = (x: number, y: number) => y * w + x
-
-  // Border walls
-  for (let x = 0; x < w; x++) {
-    grid[idx(x, 0)] = 'W'
-    grid[idx(x, h - 1)] = 'W'
-  }
-  for (let y = 0; y < h; y++) {
-    grid[idx(0, y)] = 'W'
-    grid[idx(w - 1, y)] = 'W'
-  }
-
-  // Inner walls — scale with level number (2 + level, capped)
-  const numInnerWalls = Math.min(2 + levelNum, 10)
-  let placed = 0
-  for (let attempt = 0; attempt < 200 && placed < numInnerWalls; attempt++) {
-    const wx = 2 + Math.floor(rng() * (w - 4))
-    const wy = 2 + Math.floor(rng() * (h - 4))
-    if (grid[idx(wx, wy)] === '.') {
-      grid[idx(wx, wy)] = 'W'
-      // Ensure we haven't walled off large sections — check connectivity later
-      placed++
-    }
-  }
-
-  // Collect all floor cells
-  const floors: { x: number; y: number }[] = []
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      if (grid[idx(x, y)] === '.') floors.push({ x, y })
-    }
-  }
-
-  // Check flood-fill connectivity — if not connected, remove random inner walls
-  function floodFill(start: { x: number; y: number }): Set<string> {
-    const visited = new Set<string>()
-    const stack = [start]
-    while (stack.length > 0) {
-      const { x, y } = stack.pop()!
-      const key = `${x},${y}`
-      if (visited.has(key)) continue
-      if (x < 0 || x >= w || y < 0 || y >= h) continue
-      if (grid[idx(x, y)] === 'W') continue
-      visited.add(key)
-      stack.push({ x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }, { x, y: y - 1 })
-    }
-    return visited
-  }
-
-  // Ensure connectivity
-  if (floors.length > 0) {
-    let connected = floodFill(floors[0])
-    let safety = 0
-    while (connected.size < floors.length && safety < 20) {
-      // Find a disconnected floor and remove a nearby wall
-      for (const f of floors) {
-        if (!connected.has(`${f.x},${f.y}`)) {
-          // Remove a wall adjacent to this floor cell that borders the connected region
-          const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]]
-          for (const [dx, dy] of dirs) {
-            const nx = f.x + dx
-            const ny = f.y + dy
-            if (nx > 0 && nx < w - 1 && ny > 0 && ny < h - 1 && grid[idx(nx, ny)] === 'W') {
-              grid[idx(nx, ny)] = '.'
-              floors.push({ x: nx, y: ny })
-              break
-            }
-          }
-          break
-        }
-      }
-      connected = floodFill(floors[0])
-      safety++
-    }
-  }
-
-  // Rebuild floors list after wall removals
-  const validFloors: { x: number; y: number }[] = []
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      if (grid[idx(x, y)] === '.') validFloors.push({ x, y })
-    }
-  }
-
-  // Shuffle helper
-  function shuffle<T>(arr: T[]): T[] {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]]
-    }
-    return arr
-  }
-
-  // Number of boxes scales with level
-  const numBoxes = Math.min(1 + Math.floor(levelNum / 2), 5)
-
-  // Pick target positions (must have at least 2 open neighbors for pull-ability)
-  shuffle(validFloors)
-  const targets: { x: number; y: number }[] = []
-  for (const f of validFloors) {
-    if (targets.length >= numBoxes) break
-    // Must have at least 2 non-wall neighbors
-    let openNeighbors = 0
-    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-      if (grid[idx(f.x + dx, f.y + dy)] !== 'W') openNeighbors++
-    }
-    if (openNeighbors >= 2) {
-      targets.push({ x: f.x, y: f.y })
-    }
-  }
-
-  // Mark targets on grid
-  for (const t of targets) {
-    grid[idx(t.x, t.y)] = 'T'
-  }
-
-  // Start boxes on targets, then reverse-play to scatter them
-  const boxes = targets.map(t => ({ x: t.x, y: t.y }))
-  const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const
-
-  // Reverse moves: "pull" a box = move player to the far side and pull box back
-  const pullCount = 8 + levelNum * 6
-  for (let i = 0; i < pullCount; i++) {
-    const bi = Math.floor(rng() * boxes.length)
-    const box = boxes[bi]
-    const di = Math.floor(rng() * 4)
-    const [dx, dy] = dirs[di]
-
-    // Pull direction: box moves opposite to (dx,dy), player was at box+(dx,dy) and moves to box+2*(dx,dy)
-    const newBx = box.x - dx
-    const newBy = box.y - dy
-    const playerNeed = { x: box.x + dx, y: box.y + dy }
-
-    // Validate: new box pos is floor, player position is floor, no other box there
-    if (newBx < 1 || newBx >= w - 1 || newBy < 1 || newBy >= h - 1) continue
-    if (playerNeed.x < 1 || playerNeed.x >= w - 1 || playerNeed.y < 1 || playerNeed.y >= h - 1) continue
-    const newBTile = grid[idx(newBx, newBy)]
-    const playerTile = grid[idx(playerNeed.x, playerNeed.y)]
-    if (newBTile === 'W' || playerTile === 'W') continue
-    if (boxes.some((b, j) => j !== bi && b.x === newBx && b.y === newBy)) continue
-    if (boxes.some((b, j) => j !== bi && b.x === playerNeed.x && b.y === playerNeed.y)) continue
-
-    box.x = newBx
-    box.y = newBy
-  }
-
-  // Place player — find a floor cell not occupied by a box or target
-  let player = { x: 1, y: 1 }
-  shuffle(validFloors)
-  for (const f of validFloors) {
-    const t = grid[idx(f.x, f.y)]
-    if (t === 'W') continue
-    if (boxes.some(b => b.x === f.x && b.y === f.y)) continue
-    player = { x: f.x, y: f.y }
-    break
-  }
-
-  return { width: w, height: h, grid, boxes, player }
-}
-
-// Keep one generated level cached per level number
-const levelCache = new Map<number, LevelDef>()
-
-export function getLevel(levelNum: number): LevelDef {
-  if (!levelCache.has(levelNum)) {
-    levelCache.set(levelNum, generateLevel(levelNum))
-  }
-  return levelCache.get(levelNum)!
-}
-
-export function clearLevelCache(levelNum: number) {
-  levelCache.delete(levelNum)
-}
-
-// ─── Canvas dimensions helper ────────────────────────────────────────────────
-export function canvasSize() {
-  return { w: GRID_W * CELL, h: GRID_H * CELL }
-}
+export const LEVELS: LevelDef[] = RAW_LEVELS.map(parseLevel)
 
 // ─── Game state ──────────────────────────────────────────────────────────────
 export interface SokobanState {
@@ -247,7 +166,7 @@ export type SokobanEvents = {
 export const sokobanEvents: SokobanEvents = { onStateChange: null }
 
 function createState(levelIdx: number): SokobanState {
-  const def = getLevel(levelIdx)
+  const def = LEVELS[levelIdx]
   return {
     level:    levelIdx,
     cols:     def.width,
@@ -258,6 +177,12 @@ function createState(levelIdx: number): SokobanState {
     moves:    0,
     complete: false,
   }
+}
+
+// ─── Canvas dimensions helper ────────────────────────────────────────────────
+export function canvasSize(levelIdx: number) {
+  const def = LEVELS[levelIdx]
+  return { w: def.width * CELL, h: def.height * CELL }
 }
 
 // ─── Manager entity (Script-driven logic) ────────────────────────────────────
@@ -277,10 +202,6 @@ export function restartLevel() {
 
 export function nextLevel() {
   pendingNextLevel = true
-}
-
-export function regenerateLevel(levelNum: number) {
-  clearLevelCache(levelNum)
 }
 
 // Debounce key repeats
@@ -308,11 +229,13 @@ function managerUpdate(id: EntityId, world: ECSWorld, input: InputManager, _dt: 
   }
   if (pendingNextLevel) {
     pendingNextLevel = false
-    currentLevel++
-    const fresh = createState(currentLevel)
-    stateMap.set(id, fresh)
-    keyLock = {}
-    sokobanEvents.onStateChange?.(fresh)
+    if (currentLevel < LEVELS.length - 1) {
+      currentLevel++
+      const fresh = createState(currentLevel)
+      stateMap.set(id, fresh)
+      keyLock = {}
+      sokobanEvents.onStateChange?.(fresh)
+    }
     return
   }
 

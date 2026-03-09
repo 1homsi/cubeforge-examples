@@ -108,7 +108,8 @@
       border-radius: 6px;
       white-space: nowrap;
     }
-    .section-label { width: 100%; max-width: 960px; font-size: 10px; letter-spacing: 3px; color: #37474f; margin-bottom: 16px; }
+    .section-label { width: 100%; max-width: 960px; font-size: 10px; letter-spacing: 3px; color: #37474f; margin-bottom: 16px; margin-top: 48px; }
+    .section-label:first-of-type { margin-top: 0; }
     footer { margin-top: 64px; font-size: 11px; color: #263238; letter-spacing: 2px; }
     footer a { color: #37474f; text-decoration: none; }
     footer a:hover { color: #546e7a; }
@@ -140,63 +141,88 @@
     </div>
   </a>
 
-  <div class="section-label">EXAMPLE GAMES</div>
-
+  <!-- ── PLATFORMERS ──────────────────────────────────────────────────────── -->
+  <div class="section-label">PLATFORMERS</div>
   <div class="grid">
     <a class="card" href="./platformer/" target="_blank" rel="noopener">
       <h2>PLATFORMER</h2>
       <p>3-level scrolling platformer — procedural levels, bat enemies, chasers, heart pickups, coins, and lives.</p>
       <span class="tag">WASD / SPACE</span>
     </a>
+    <a class="card" href="./endless-runner/" target="_blank" rel="noopener">
+      <h2>ENDLESS RUNNER</h2>
+      <p>Dodge incoming obstacles as the world speeds up. How far can you get?</p>
+      <span class="tag">SPACE / ↑</span>
+    </a>
+    <a class="card" href="./mario-clone/" target="_blank" rel="noopener">
+      <h2>MARIO CLONE</h2>
+      <p>Procedurally generated SMB-style levels — brick blocks, question blocks, pipes, enemies, and Bowser.</p>
+      <span class="tag">WASD / SPACE</span>
+    </a>
+  </div>
+
+  <!-- ── ARCADE ──────────────────────────────────────────────────────────── -->
+  <div class="section-label">ARCADE</div>
+  <div class="grid">
     <a class="card" href="./snake/" target="_blank" rel="noopener">
       <h2>SNAKE</h2>
       <p>Classic snake — eat food to grow, avoid your own tail. Speed increases over time.</p>
       <span class="tag">WASD / ARROW KEYS</span>
-    </a>
-    <a class="card" href="./tower-defense/" target="_blank" rel="noopener">
-      <h2>TOWER DEFENSE</h2>
-      <p>Place towers to stop 5 waves of enemies. Three tower types: basic, slow, and splash.</p>
-      <span class="tag">CLICK TO PLACE</span>
     </a>
     <a class="card" href="./breakout/" target="_blank" rel="noopener">
       <h2>BREAKOUT</h2>
       <p>Classic brick breaker — 60 bricks, paddle angle control, 3 lives.</p>
       <span class="tag">A / D</span>
     </a>
-    <a class="card" href="./flappy-bird/" target="_blank" rel="noopener">
-      <h2>FLAPPY BIRD</h2>
-      <p>Tap to flap through scrolling pipe pairs. Tracks your session high score.</p>
-      <span class="tag">SPACE / CLICK</span>
-    </a>
-    <a class="card" href="./shooter/" target="_blank" rel="noopener">
-      <h2>SHOOTER</h2>
-      <p>Side-scrolling shoot-em-up with 5 waves, 3 enemy patterns, and a star field.</p>
-      <span class="tag">W / S / SPACE</span>
-    </a>
-    <a class="card" href="./top-down/" target="_blank" rel="noopener">
-      <h2>TOP-DOWN</h2>
-      <p>Dungeon explorer — 4-directional combat, 8 keys to collect, exit door.</p>
-      <span class="tag">WASD / SPACE</span>
-    </a>
     <a class="card" href="./pong/" target="_blank" rel="noopener">
       <h2>PONG</h2>
       <p>Two-player paddle battle. First to 7 wins. Ball speeds up on every hit.</p>
       <span class="tag">W/S · ↑/↓</span>
     </a>
-    <a class="card" href="./endless-runner/" target="_blank" rel="noopener">
-      <h2>ENDLESS RUNNER</h2>
-      <p>Dodge incoming obstacles as the world speeds up. How far can you get?</p>
-      <span class="tag">SPACE / ↑</span>
+    <a class="card" href="./flappy-bird/" target="_blank" rel="noopener">
+      <h2>FLAPPY BIRD</h2>
+      <p>Tap to flap through scrolling pipe pairs. Tracks your session high score.</p>
+      <span class="tag">SPACE / CLICK</span>
     </a>
     <a class="card" href="./asteroids/" target="_blank" rel="noopener">
       <h2>ASTEROIDS</h2>
       <p>Rotate, thrust, and shoot through waves of splitting asteroids. 3 lives.</p>
       <span class="tag">WASD / SPACE</span>
     </a>
+  </div>
+
+  <!-- ── PUZZLES ─────────────────────────────────────────────────────────── -->
+  <div class="section-label">PUZZLES</div>
+  <div class="grid">
+    <a class="card" href="./2048/" target="_blank" rel="noopener">
+      <h2>2048</h2>
+      <p>Slide and merge tiles on a 4x4 grid. Reach 2048 to win — or keep going for a high score.</p>
+      <span class="tag">ARROW KEYS</span>
+    </a>
+    <a class="card" href="./minesweeper/" target="_blank" rel="noopener">
+      <h2>MINESWEEPER</h2>
+      <p>Reveal cells, flag mines, clear the board. 10x10 grid with 15 mines. First click is always safe.</p>
+      <span class="tag">CLICK · RIGHT-CLICK</span>
+    </a>
     <a class="card" href="./puzzle/" target="_blank" rel="noopener">
-      <h2>PUZZLE (SOKOBAN)</h2>
-      <p>Infinite procedural Sokoban — push boxes onto targets, difficulty scales forever.</p>
+      <h2>SOKOBAN</h2>
+      <p>Push boxes onto targets across 10 hand-crafted levels. Plan ahead — no pulling allowed.</p>
       <span class="tag">ARROW KEYS · R RESTART</span>
+    </a>
+    <a class="card" href="./lights-out/" target="_blank" rel="noopener">
+      <h2>LIGHTS OUT</h2>
+      <p>Toggle lights on a 5x5 grid — clicking a light flips it and its neighbors. Turn them all off to win.</p>
+      <span class="tag">CLICK</span>
+    </a>
+  </div>
+
+  <!-- ── TOP-DOWN ────────────────────────────────────────────────────────── -->
+  <div class="section-label">TOP-DOWN</div>
+  <div class="grid">
+    <a class="card" href="./top-down/" target="_blank" rel="noopener">
+      <h2>DUNGEON EXPLORER</h2>
+      <p>4-directional combat, 8 keys to collect, exit door. Slash through slime enemies.</p>
+      <span class="tag">WASD / SPACE</span>
     </a>
     <a class="card" href="./rpg/" target="_blank" rel="noopener">
       <h2>RPG</h2>
@@ -208,15 +234,35 @@
       <p>Turn-based dungeon crawler — procedural levels, fog of war, bump combat. How deep can you go?</p>
       <span class="tag">WASD / ARROW KEYS</span>
     </a>
+  </div>
+
+  <!-- ── STRATEGY ────────────────────────────────────────────────────────── -->
+  <div class="section-label">STRATEGY</div>
+  <div class="grid">
+    <a class="card" href="./tower-defense/" target="_blank" rel="noopener">
+      <h2>TOWER DEFENSE</h2>
+      <p>Place towers to stop 5 waves of enemies. Three tower types: basic, slow, and splash.</p>
+      <span class="tag">CLICK TO PLACE</span>
+    </a>
+  </div>
+
+  <!-- ── SHOOTER ─────────────────────────────────────────────────────────── -->
+  <div class="section-label">SHOOTER</div>
+  <div class="grid">
+    <a class="card" href="./shooter/" target="_blank" rel="noopener">
+      <h2>SPACE SHOOTER</h2>
+      <p>Side-scrolling shoot-em-up with 5 waves, 3 enemy patterns, and a star field.</p>
+      <span class="tag">W / S / SPACE</span>
+    </a>
+  </div>
+
+  <!-- ── MULTIPLAYER ─────────────────────────────────────────────────────── -->
+  <div class="section-label">MULTIPLAYER</div>
+  <div class="grid">
     <a class="card" href="./multiplayer/" target="_blank" rel="noopener">
       <h2>MULTIPLAYER</h2>
       <p>Two-player shared-screen demo — local transport simulates networked sync. Push the ball to score.</p>
       <span class="tag">WASD · ↑↓←→</span>
-    </a>
-    <a class="card" href="./mario-clone/" target="_blank" rel="noopener">
-      <h2>MARIO CLONE</h2>
-      <p>Procedurally generated SMB-style levels — brick blocks, question blocks, pipes, enemies, and Bowser.</p>
-      <span class="tag">WASD / SPACE</span>
     </a>
   </div>
 
