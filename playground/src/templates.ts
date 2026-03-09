@@ -417,9 +417,9 @@ import { useRef } from 'react'
 import {
   Game, World, Camera2D, Entity, Transform, Sprite,
   RigidBody, BoxCollider, ScreenFlash, Text,
-  useEntity, useCamera, usePlatformerController, useInput
+  useEntity, useCamera, usePlatformerController, Script
 } from 'cubeforge'
-import type { ScreenFlashHandle } from 'cubeforge'
+import type { ScreenFlashHandle, EntityId, ECSWorld, InputManager } from 'cubeforge'
 
 function Player() {
   return (
@@ -487,27 +487,30 @@ function CameraDemo() {
       </Entity>
 
       {/* Keyboard trigger */}
-      <Entity>
-        <Transform x={0} y={0} />
-        <CameraKeyboard camera={camera} flashRef={flashRef} />
-      </Entity>
+      <CameraKeyboard camera={camera} flashRef={flashRef} />
     </>
   )
 }
+
+let zoomed = false
 
 function CameraKeyboard({ camera, flashRef }: {
   camera: ReturnType<typeof useCamera>
   flashRef: React.RefObject<ScreenFlashHandle | null>
 }) {
-  const id = useEntity()
-  const input = useInput()
-
-  // Using Script would be cleaner, but hooks demo is more instructive
-  if (input?.isPressed?.('KeyQ')) camera.shake(8, 0.3)
-  if (input?.isPressed?.('KeyE')) camera.setZoom(camera.getZoom?.() === 1 ? 1.5 : 1)
-  if (input?.isPressed?.('KeyF')) flashRef.current?.flash('#ffffff', 0.3)
-
-  return null
+  return (
+    <Entity>
+      <Transform x={0} y={0} />
+      <Script update={(_id: EntityId, _world: ECSWorld, input: InputManager) => {
+        if (input.isPressed('KeyQ')) camera.shake(8, 0.3)
+        if (input.isPressed('KeyE')) {
+          zoomed = !zoomed
+          camera.setZoom(zoomed ? 1.5 : 1)
+        }
+        if (input.isPressed('KeyF')) flashRef.current?.flash('#ffffff', 0.3)
+      }} />
+    </Entity>
+  )
 }
 
 function Ground() {
@@ -785,7 +788,7 @@ createRoot(document.getElementById('root')!).render(
       {/* Line */}
       <Entity>
         <Transform x={280} y={130} />
-        <Line x2={80} y2={100} color="#ef5350" lineWidth={3} />
+        <Line endX={80} endY={100} color="#ef5350" lineWidth={3} />
       </Entity>
       <Entity>
         <Transform x={300} y={260} />
@@ -802,7 +805,7 @@ createRoot(document.getElementById('root')!).render(
             { x: -50, y: 40 },
           ]}
           color="#66bb6a"
-          filled
+          closed
         />
       </Entity>
       <Entity>
@@ -819,7 +822,7 @@ createRoot(document.getElementById('root')!).render(
             y: Math.sin(Math.PI / 3 * i - Math.PI / 6) * 50,
           }))}
           color="#fdd835"
-          filled
+          closed
         />
       </Entity>
       <Entity>
@@ -832,7 +835,7 @@ createRoot(document.getElementById('root')!).render(
         <Transform x={400} y={380} />
         <Sprite width={600} height={60} color="#000" zIndex={-1} />
         <Gradient
-          type="linear"
+          gradientType="linear"
           stops={[
             { offset: 0, color: '#4fc3f7' },
             { offset: 0.5, color: '#e040fb' },
@@ -943,12 +946,13 @@ export function Wall({ x, y, w, h }: { x: number; y: number; w: number; h: numbe
         content: `import { createRoot } from 'react-dom/client'
 import {
   Game, World, Camera2D, Entity, Transform, Sprite, Text,
+  RigidBody, BoxCollider, Script,
   useEntity, useInputMap, createInputMap
 } from 'cubeforge'
 import type { EntityId, ECSWorld, InputManager } from 'cubeforge'
 
 // Define named actions with multiple key bindings
-const bindings = createInputMap({
+const actions = createInputMap({
   moveUp:    ['KeyW', 'ArrowUp'],
   moveDown:  ['KeyS', 'ArrowDown'],
   moveLeft:  ['KeyA', 'ArrowLeft'],
@@ -962,6 +966,8 @@ function Player() {
     <Entity id="player" tags={['player']}>
       <Transform x={400} y={250} />
       <Sprite width={28} height={28} color="#4fc3f7" zIndex={5} />
+      <RigidBody gravityScale={0} />
+      <BoxCollider width={28} height={28} />
       <PlayerInput />
     </Entity>
   )
@@ -969,14 +975,26 @@ function Player() {
 
 function PlayerInput() {
   const id = useEntity()
-  const input = useInputMap(bindings)
-  const speed = 200
-  const dashSpeed = 400
+  const input = useInputMap(actions)
 
-  // This runs every frame via React re-render (fine for demos)
-  // For production, prefer Script component
+  return (
+    <Script update={(eid: EntityId, world: ECSWorld, _input: InputManager, dt: number) => {
+      const t = world.getComponent(eid, 'Transform') as any
+      if (!t || !input) return
 
-  return null
+      let dx = 0, dy = 0
+      if (input.isActionDown('moveUp'))    dy = -1
+      if (input.isActionDown('moveDown'))  dy =  1
+      if (input.isActionDown('moveLeft'))  dx = -1
+      if (input.isActionDown('moveRight')) dx =  1
+
+      const speed = input.isActionDown('dash') ? 400 : 200
+      t.x += dx * speed * dt
+      t.y += dy * speed * dt
+      t.x = Math.max(20, Math.min(780, t.x))
+      t.y = Math.max(20, Math.min(480, t.y))
+    }} />
+  )
 }
 
 createRoot(document.getElementById('root')!).render(
@@ -993,8 +1011,8 @@ createRoot(document.getElementById('root')!).render(
       <Entity>
         <Transform x={400} y={70} />
         <Text
-          text="moveUp: W/Up  |  moveDown: S/Down  |  dash: Shift  |  action: Space/E"
-          fontSize={10} color="#37474f" align="center" baseline="middle"
+          text="WASD/Arrows=move | Shift=dash | Space/E=action"
+          fontSize={10} color="#546e7a" align="center" baseline="middle"
         />
       </Entity>
 
@@ -1008,6 +1026,8 @@ createRoot(document.getElementById('root')!).render(
         <Entity key={i}>
           <Transform x={w.x} y={w.y} />
           <Sprite width={w.w} height={w.h} color="#1e2535" />
+          <RigidBody isStatic />
+          <BoxCollider width={w.w} height={w.h} />
         </Entity>
       ))}
     </World>
