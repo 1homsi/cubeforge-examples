@@ -16,6 +16,16 @@
     "dev:multiplayer": "pnpm --filter multiplayer-example dev",
     "dev:2048": "pnpm --filter 2048-example dev",
     "dev:minesweeper": "pnpm --filter minesweeper-example dev",
-    "dev:lights-out": "pnpm --filter lights-out-example dev"
+    "dev:lights-out": "pnpm --filter lights-out-example dev",
+    "dev:tetris": "pnpm --filter tetris-example dev",
+    "dev:pac-man": "pnpm --filter pac-man-example dev",
+    "dev:match-3": "pnpm --filter match-3-example dev",
+    "dev:twin-stick": "pnpm --filter twin-stick-example dev",
+    "dev:vampire-survivors": "pnpm --filter vampire-survivors-example dev",
+    "dev:angry-birds": "pnpm --filter angry-birds-example dev",
+    "dev:solitaire": "pnpm --filter solitaire-example dev",
+    "dev:rhythm": "pnpm --filter rhythm-example dev",
+    "dev:idle": "pnpm --filter idle-example dev",
+    "dev:game-of-life": "pnpm --filter game-of-life-example dev"
   }
 }
