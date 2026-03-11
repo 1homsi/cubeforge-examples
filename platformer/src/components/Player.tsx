@@ -111,10 +111,12 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
   }
 
   // ── Ground state ──────────────────────────────────────────────────────────
-  if (rb.onGround) {
+  // Only reset jumps when truly grounded (not during jump cooldown —
+  // the impulse solver may report onGround for a frame after jump starts)
+  if (rb.onGround && state.jumpCooldown === 0) {
     state.coyoteTimer = COYOTE_TIME
     state.jumpsLeft   = MAX_JUMPS
-  } else {
+  } else if (!rb.onGround) {
     state.coyoteTimer = Math.max(0, state.coyoteTimer - dt)
   }
 

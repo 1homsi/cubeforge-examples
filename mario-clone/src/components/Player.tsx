@@ -54,6 +54,7 @@ interface PlayerState {
   invincibleTimer: number
   flashTimer:      number
   fireCooldown:    number
+  jumpCooldown:    number
   fireballs:       Map<EntityId, FireballData>
   appliedH:        number
 }
@@ -71,6 +72,7 @@ function playerInit(id: EntityId) {
     invincibleTimer: 0,
     flashTimer:      0,
     fireCooldown:    0,
+    jumpCooldown:    0,
     fireballs:       new Map(),
     appliedH:        SMALL_H,
   })
@@ -116,16 +118,21 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
   }
 
   // ── Ground state ──────────────────────────────────────────────────────────
-  if (rb.onGround) {
+  // Only reset jumps when truly grounded (not during jump cooldown —
+  // the impulse solver may report onGround for a frame after jump starts)
+  if (rb.onGround && state.jumpCooldown === 0) {
     state.coyoteTimer = COYOTE_TIME
     state.jumpsLeft   = state.maxJumps
-  } else {
+  } else if (!rb.onGround) {
     state.coyoteTimer = Math.max(0, state.coyoteTimer - dt)
   }
 
+  // ── Jump cooldown ───────────────────────────────────────────────────────
+  state.jumpCooldown = Math.max(0, state.jumpCooldown - dt)
+
   // ── Jump buffer ───────────────────────────────────────────────────────────
-  if (actions.isActionPressed(input, 'jump')) state.jumpBuffer = JUMP_BUFFER
-  else                                         state.jumpBuffer = Math.max(0, state.jumpBuffer - dt)
+  if (actions.isActionPressed(input, 'jump') && state.jumpCooldown === 0) state.jumpBuffer = JUMP_BUFFER
+  else if (!actions.isActionPressed(input, 'jump'))                        state.jumpBuffer = Math.max(0, state.jumpBuffer - dt)
 
   // ── Horizontal movement ───────────────────────────────────────────────────
   const left  = actions.isActionDown(input, 'left')
@@ -138,10 +145,11 @@ function playerUpdate(id: EntityId, world: ECSWorld, input: InputManager, dt: nu
   // ── Jump ──────────────────────────────────────────────────────────────────
   const canJump = state.coyoteTimer > 0 || state.jumpsLeft > 0
   if (state.jumpBuffer > 0 && canJump) {
-    rb.vy             = JUMP_FORCE
-    state.jumpsLeft   = Math.max(0, state.jumpsLeft - 1)
-    state.coyoteTimer = 0
-    state.jumpBuffer  = 0
+    rb.vy              = JUMP_FORCE
+    state.jumpsLeft    = Math.max(0, state.jumpsLeft - 1)
+    state.coyoteTimer  = 0
+    state.jumpBuffer   = 0
+    state.jumpCooldown = 0.22
   }
   if (!actions.isActionDown(input, 'jump') && rb.vy < -150) rb.vy += 900 * dt
 
