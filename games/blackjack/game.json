@@ -1,0 +1,9 @@
+{
+  "slug": "blackjack",
+  "title": "Blackjack",
+  "description": "Beat the dealer without going over 21.",
+  "tags": [
+    "card",
+    "casual"
+  ]
+}

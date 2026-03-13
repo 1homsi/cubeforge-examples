@@ -1,0 +1,9 @@
+{
+  "slug": "sokoban",
+  "title": "Sokoban",
+  "description": "Push boxes onto targets to solve each level.",
+  "tags": [
+    "puzzle",
+    "classic"
+  ]
+}

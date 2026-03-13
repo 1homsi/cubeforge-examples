@@ -1,0 +1,9 @@
+{
+  "slug": "minesweeper",
+  "title": "Minesweeper",
+  "description": "Uncover all cells without hitting a mine.",
+  "tags": [
+    "puzzle",
+    "classic"
+  ]
+}

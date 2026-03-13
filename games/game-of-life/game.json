@@ -1,0 +1,9 @@
+{
+  "slug": "game-of-life",
+  "title": "Conway's Game of Life",
+  "description": "Simulate Conway's cellular automaton.",
+  "tags": [
+    "simulation",
+    "casual"
+  ]
+}

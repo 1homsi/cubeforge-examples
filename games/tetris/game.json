@@ -1,0 +1,10 @@
+{
+  "slug": "tetris",
+  "title": "Tetris",
+  "description": "Stack falling tetrominoes and clear lines.",
+  "tags": [
+    "arcade",
+    "classic",
+    "puzzle"
+  ]
+}

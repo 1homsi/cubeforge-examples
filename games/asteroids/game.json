@@ -1,0 +1,9 @@
+{
+  "slug": "asteroids",
+  "title": "Asteroids",
+  "description": "Shoot asteroids and survive the field.",
+  "tags": [
+    "arcade",
+    "shooter"
+  ]
+}

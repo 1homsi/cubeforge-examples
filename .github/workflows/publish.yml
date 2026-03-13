@@ -1,0 +1,58 @@
+name: Publish games to Supabase
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'games/**'
+
+jobs:
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      games: ${{ steps.detect.outputs.games }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed games
+        id: detect
+        run: |
+          changed=$(git diff --name-only HEAD~1 HEAD \
+            | grep '^games/' \
+            | cut -d'/' -f2 \
+            | sort -u \
+            | jq -Rsc 'split("\n") | map(select(length > 0))')
+          echo "games=$changed" >> $GITHUB_OUTPUT
+          echo "Changed games: $changed"
+
+  publish:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.games != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        game: ${{ fromJson(needs.detect-changes.outputs.games) }}
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish ${{ matrix.game }}
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/publish-game.mjs ${{ matrix.game }}

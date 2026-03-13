@@ -1,0 +1,9 @@
+{
+  "slug": "tic-tac-toe",
+  "title": "Tic-Tac-Toe",
+  "description": "Classic X vs O — first to three wins.",
+  "tags": [
+    "board",
+    "casual"
+  ]
+}

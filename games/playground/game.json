@@ -1,0 +1,9 @@
+{
+  "slug": "playground",
+  "title": "Playground",
+  "description": "An interactive sandbox for experimenting with cubeforge.",
+  "tags": [
+    "demo",
+    "sandbox"
+  ]
+}

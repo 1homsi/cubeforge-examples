@@ -1,0 +1,9 @@
+{
+  "slug": "snake",
+  "title": "Snake",
+  "description": "Eat apples and grow without hitting yourself.",
+  "tags": [
+    "arcade",
+    "classic"
+  ]
+}

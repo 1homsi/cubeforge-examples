@@ -1,0 +1,9 @@
+{
+  "slug": "checkers",
+  "title": "Checkers",
+  "description": "Classic checkers against a friend or AI.",
+  "tags": [
+    "board",
+    "strategy"
+  ]
+}

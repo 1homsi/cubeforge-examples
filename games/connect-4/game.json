@@ -1,0 +1,9 @@
+{
+  "slug": "connect-4",
+  "title": "Connect 4",
+  "description": "Drop pieces and get four in a row.",
+  "tags": [
+    "board",
+    "strategy"
+  ]
+}

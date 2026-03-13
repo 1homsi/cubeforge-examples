@@ -1,0 +1,9 @@
+{
+  "slug": "match-3",
+  "title": "Match 3",
+  "description": "Swap and match three gems to clear the board.",
+  "tags": [
+    "puzzle",
+    "casual"
+  ]
+}

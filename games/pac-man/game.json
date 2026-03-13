@@ -1,0 +1,9 @@
+{
+  "slug": "pac-man",
+  "title": "Pac-Man",
+  "description": "Eat all the dots and avoid the ghosts.",
+  "tags": [
+    "arcade",
+    "classic"
+  ]
+}

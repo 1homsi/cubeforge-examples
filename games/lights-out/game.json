@@ -1,0 +1,8 @@
+{
+  "slug": "lights-out",
+  "title": "Lights Out",
+  "description": "Toggle lights to turn the board dark.",
+  "tags": [
+    "puzzle"
+  ]
+}
