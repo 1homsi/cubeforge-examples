@@ -27,7 +27,9 @@ const metaPath = join(gameDir, 'game.json')
 const meta = JSON.parse(readFileSync(metaPath, 'utf8'))
 console.log(`📦 Publishing: ${meta.title} (${slug})`)
 
-// ── Build ────────────────────────────────────────────────────
+// ── Install + Build ──────────────────────────────────────────
+console.log('📥 Installing dependencies…')
+execSync('pnpm install', { cwd: gameDir, stdio: 'inherit' })
 console.log('🔨 Building…')
 execSync('pnpm build', { cwd: gameDir, stdio: 'inherit' })
 
